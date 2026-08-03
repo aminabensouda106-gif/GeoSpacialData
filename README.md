@@ -77,6 +77,29 @@ streamlit run app.py
 
 **Limite :** période d'analyse plafonnée à 60 jours (`MAX_RANGE_DAYS`) pour éviter un calcul trop long côté Earth Engine.
 
+## Ingestion automatisée (Apache NiFi) — Phase 3
+
+**Fichiers :** [`docker-compose.yml`](docker-compose.yml), [`nifi/scripts/`](nifi/scripts/)
+
+Orchestration des flux de collecte pour les 3 premières sources (GEE, OSM, ORS) selon
+le cahier des charges §9.2. Le web scraping sera ajouté dans un second temps.
+
+- **Google Earth Engine** : NiFi n'a pas de connecteur natif GEE → un service séparé
+  (`gee-exporter`, basé sur [`nifi/scripts/gee_export.py`](nifi/scripts/gee_export.py))
+  exécute périodiquement l'export NDVI (même logique que `vegetation_cover_ndvi.js`,
+  restreinte à une zone pilote) et dépose le GeoTIFF dans `nifi/data/gee/`. NiFi surveille
+  ensuite ce dossier (`ListFile`/`FetchFile`).
+- **OpenStreetMap** et **OpenRouteService** : configurés directement dans NiFi via des
+  processeurs `InvokeHTTP` (pas de script nécessaire), qui écrivent leurs résultats dans
+  `nifi/data/osm/` et `nifi/data/ors/`.
+
+**Démarrage :**
+```bash
+cp .env.example .env   # puis renseigner EE_PROJECT_ID, EE_CONFIG_DIR, ORS_API_KEY
+docker compose up -d --build
+```
+Interface NiFi : http://localhost:8080/nifi
+
 ## Prérequis
 
 - Compte [Google Earth Engine](https://earthengine.google.com/) activé

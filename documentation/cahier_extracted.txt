@@ -1,0 +1,246 @@
+
+Table des matières
+TOC \o "1-2" \h \z \uCAHIER DES CHARGES PAGEREF _Toc236594335 \h 1
+Conception et développement d’un système de collecte, de centralisation, de gestion et d’exposition de données alternatives géospatiales PAGEREF _Toc236594336 \h 1
+1. Contexte du projet PAGEREF _Toc236594337 \h 1
+2. Problématique PAGEREF _Toc236594338 \h 1
+3. Objectifs généraux PAGEREF _Toc236594339 \h 1
+4. Objectifs spécifiques PAGEREF _Toc236594340 \h 1
+5. Périmètre du projet PAGEREF _Toc236594341 \h 1
+6. Parties prenantes PAGEREF _Toc236594342 \h 1
+7. Étude de l’existant PAGEREF _Toc236594343 \h 1
+8. Analyse des besoins PAGEREF _Toc236594344 \h 1
+9. Description complète du flux de données PAGEREF _Toc236594345 \h 1
+10. Technologies retenues PAGEREF _Toc236594346 \h 1
+11. Exigences fonctionnelles PAGEREF _Toc236594347 \h 1
+12. Exigences non fonctionnelles PAGEREF _Toc236594348 \h 1
+13. Exigences de sécurité PAGEREF _Toc236594349 \h 1
+14. Contraintes techniques PAGEREF _Toc236594350 \h 1
+15. Contraintes du projet PAGEREF _Toc236594351 \h 1
+16. Analyse des risques PAGEREF _Toc236594352 \h 1
+17. Hypothèses PAGEREF _Toc236594353 \h 1
+18. Livrables attendus PAGEREF _Toc236594354 \h 1
+19. Planning prévisionnel PAGEREF _Toc236594355 \h 1
+20. Critères de validation et d’acceptation PAGEREF _Toc236594356 \h 1
+21. Perspectives d’évolution PAGEREF _Toc236594357 \h 1
+CAHIER DES CHARGES
+Conception et développement d’un système de collecte, de centralisation, de gestion et d’exposition de données alternatives géospatiales
+Projet de Fin d’Études (PFA) Filière : Ingénierie Informatique — 3ème année
+1. Contexte du projet
+Le développement économique, environnemental et territorial repose aujourd’hui de plus en plus sur l’exploitation de données dites « alternatives », c’est-à-dire des données ne provenant pas des sources statistiques officielles classiques, mais issues de capteurs satellitaires, de plateformes collaboratives, de services web ou de portails ouverts. Ces données, lorsqu’elles sont correctement collectées, structurées et croisées, permettent d’obtenir une vision fine et actualisée de phénomènes territoriaux, agricoles, environnementaux ou urbains, souvent avec une granularité et une fréquence que les sources officielles ne peuvent égaler.
+Dans ce contexte, l’imagerie satellitaire (Sentinel-2, Landsat), les données cartographiques collaboratives (OpenStreetMap), les services de routage (OpenRouteService) et les données extraites du web constituent des gisements d’information particulièrement riches pour des applications de suivi environnemental, d’aménagement du territoire, d’agriculture de précision ou d’analyse de mobilité.
+Cependant, ces sources sont hétérogènes par nature : formats différents (raster, vecteur, tabulaire), fréquences de mise à jour variables, systèmes de projection différents, qualité de données inégale, et absence d’interopérabilité native entre elles. Leur exploitation manuelle est fastidieuse, peu reproductible et difficilement scalable.
+C’est dans cette perspective que s’inscrit le présent projet de fin d’études, qui vise à concevoir et développer une plateforme capable d’automatiser l’ensemble du cycle de vie de ces données alternatives géospatiales : de leur acquisition brute jusqu’à leur exposition sous forme de produits dérivés exploitables (cartes, indices, API, tableaux de bord).
+Ce projet s’inscrit dans une démarche d’ingénierie logicielle, de data engineering et de génie géomatique (GIS Engineering), combinant des compétences en architecture logicielle, en gestion de bases de données spatiales, en traitement d’images satellitaires et en conception de pipelines ETL.
+2. Problématique
+La problématique centrale du projet peut être formulée ainsi :
+Comment concevoir une plateforme unifiée, automatisée et scalable permettant de collecter, transformer, centraliser et diffuser des données géospatiales alternatives issues de sources hétérogènes, tout en garantissant la qualité, la traçabilité et l’exploitabilité de ces données pour des usages environnementaux et territoriaux ?
+Cette problématique se décline en plusieurs questions techniques sous-jacentes :
+Comment automatiser l’acquisition de données provenant de sources hétérogènes (API satellitaires, bases collaboratives, services web, sites non structurés) sans intervention manuelle répétée ?
+Comment harmoniser des données de nature différente (raster, vecteur, tabulaire) dans un référentiel géographique et sémantique commun ?
+Comment garantir la qualité, la cohérence et la traçabilité des données tout au long de leur cycle de vie ?
+Comment stocker efficacement de gros volumes de données géospatiales tout en permettant des requêtes spatiales performantes ?
+Comment générer automatiquement des produits dérivés à forte valeur ajoutée, comme les indices de végétation (NDVI), à partir d’images satellitaires brutes ?
+Comment exposer ces données de manière structurée et sécurisée à des utilisateurs finaux, qu’ils soient analystes SIG, décideurs ou applications tierces ?
+L’absence d’une telle plateforme oblige aujourd’hui les utilisateurs à multiplier les outils, les scripts ad hoc et les traitements manuels, ce qui nuit à la reproductibilité, à la fiabilité et à la scalabilité des analyses géospatiales.
+3. Objectifs généraux
+Le projet poursuit les objectifs généraux suivants :
+Concevoir une architecture logicielle modulaire et conteneurisée capable d’orchestrer l’ensemble du cycle de vie des données géospatiales alternatives, depuis leur acquisition jusqu’à leur exploitation finale.
+Automatiser, grâce à Apache NiFi, les flux d’ingestion et de transformation de données provenant de sources multiples et hétérogènes, afin de réduire l’intervention manuelle et d’assurer la reproductibilité des traitements.
+Centraliser les données au sein d’un système de gestion de base de données spatiale (PostgreSQL/PostGIS), garantissant une organisation cohérente, une indexation performante et une gouvernance claire des données.
+Générer des produits géospatiaux dérivés à valeur ajoutée, notamment des indices de végétation (NDVI) à partir d’images satellitaires, pour appuyer des analyses environnementales.
+Exposer les données traitées via des interfaces standardisées (API REST, application web, intégration QGIS) afin de les rendre accessibles à différents profils d’utilisateurs et à des systèmes tiers.
+Assurer la portabilité et la scalabilité de la solution grâce à la conteneurisation Docker de l’ensemble des composants.
+4. Objectifs spécifiques
+Mettre en place des workflows NiFi automatisés pour l’extraction périodique de données depuis Google Earth Engine, OpenStreetMap, OpenRouteService et des sources web scrapées.
+Développer des processeurs de transformation permettant la conversion de systèmes de coordonnées (CRS), le nettoyage, la validation et la normalisation des données collectées.
+Implémenter le calcul automatisé du NDVI et d’autres indices dérivés (NDWI, indices de couverture du sol) à partir des bandes spectrales des images Sentinel-2/Landsat.
+Concevoir un schéma de base de données PostgreSQL/PostGIS structuré, indexé spatialement, avec gestion des métadonnées et du versionnement des jeux de données.
+Développer une API REST exposant les données stockées sous forme de services de consultation, de téléchargement et de requêtage spatial.
+Développer un module de génération de rapports et de statistiques (surfaces végétalisées, évolution temporelle du NDVI, etc.).
+Intégrer QGIS comme client de visualisation, de validation et d’analyse spatiale des données produites, via des connexions directes à PostGIS et à l’API.
+Conteneuriser l’ensemble des composants (NiFi, PostgreSQL/PostGIS, backend, frontend) avec Docker Compose, afin d’assurer un déploiement reproductible.
+Mettre en place un mécanisme de journalisation (logging), de supervision et de gestion des erreurs sur l’ensemble de la chaîne de traitement.
+5. Périmètre du projet
+5.1 Éléments inclus dans le périmètre
+Le projet couvre la conception et le développement d’un pipeline complet allant de la collecte à l’exposition des données, comprenant : les workflows NiFi d’ingestion pour Google Earth Engine, OpenStreetMap, OpenRouteService et le web scraping ciblé ; les traitements de transformation et de calcul du NDVI ; le schéma et l’administration de la base PostgreSQL/PostGIS ; une API REST d’exposition des données ; une interface web minimale de consultation et de visualisation ; l’intégration avec QGIS pour la validation et l’analyse ; la conteneurisation Docker de l’ensemble des services.
+5.2 Éléments exclus du périmètre
+Sont exclus du périmètre de ce PFA : le développement d’une application mobile dédiée ; l’implémentation d’algorithmes de machine learning avancés pour la classification automatique d’occupation du sol (au-delà du calcul d’indices standards) ; la mise en place d’une infrastructure de calcul distribué (type Spark/Hadoop) ; la couverture géographique mondiale en temps réel (le projet se concentrera sur une ou plusieurs zones d’étude pilotes, par exemple une région du Maroc) ; la certification officielle des données produites à des fins réglementaires.
+6. Parties prenantes
+Partie prenante
+Rôle
+Étudiant(e) porteur du PFA
+Conception, développement et documentation de la plateforme
+Encadrant académique
+Suivi méthodologique, validation des choix techniques, évaluation
+Encadrant industriel (le cas échéant)
+Orientation métier, retours d’expérience terrain, validation des besoins
+Jury de soutenance
+Évaluation finale du projet et de sa pertinence technique
+Utilisateurs finaux (analystes SIG, chercheurs, décideurs territoriaux)
+Consommateurs des données et produits exposés par la plateforme
+Fournisseurs de données (Google Earth Engine, OSM, ORS)
+Sources externes de données, via API publiques
+Équipe de maintenance future (hypothétique)
+Exploitation et évolution de la plateforme après livraison
+7. Étude de l’existant
+7.1 Solutions et outils existants
+Plusieurs outils et plateformes traitent partiellement des problématiques similaires. Google Earth Engine offre un catalogue impressionnant d’images satellitaires et des capacités de calcul cloud, mais reste un environnement de traitement à la demande, sans mécanisme de centralisation locale ni d’exposition via une API métier personnalisée. Les portails de données ouvertes (Copernicus Open Access Hub, USGS EarthExplorer) permettent le téléchargement d’images brutes, mais ne proposent aucune automatisation de bout en bout ni de transformation en produits dérivés prêts à l’emploi.
+OpenStreetMap fournit des données vectorielles riches et gratuites, mais leur extraction, leur mise à jour et leur intégration dans un système propre nécessitent des outils dédiés (Overpass API, osmium) qui ne sont pas nativement orchestrés. OpenRouteService propose des services de routage et d’accessibilité via API, mais leur exploitation reste ponctuelle et non intégrée à un référentiel de données centralisé.
+Des solutions commerciales existent (ArcGIS Online, Sentinel Hub) mais impliquent des coûts de licence élevés, une dépendance à des écosystèmes propriétaires, et une flexibilité réduite pour des besoins de recherche ou des projets académiques à budget limité.
+7.2 Limites de l’existant
+Les limites communes identifiées sont : l’absence d’automatisation bout-en-bout reliant collecte, transformation et diffusion ; l’hétérogénéité non résolue des formats et systèmes de référence spatiale ; l’absence de traçabilité et de gestion de versions des jeux de données ; des coûts de licence prohibitifs pour certaines solutions propriétaires ; une faible réutilisabilité des traitements réalisés de façon manuelle ou ad hoc.
+7.3 Justification du projet proposé
+La plateforme proposée se distingue en combinant des outils open source (NiFi, PostgreSQL/PostGIS, QGIS, Docker) avec des sources de données alternatives (GEE, OSM, ORS, web scraping) au sein d’une architecture unique, automatisée, traçable et reproductible. Elle ne cherche pas à remplacer ces outils mais à les orchestrer de façon cohérente, comblant ainsi le vide laissé par l’absence d’intégration native entre ces écosystèmes.
+8. Analyse des besoins
+8.1 Besoins fonctionnels
+Le système doit permettre la collecte automatisée d’images satellitaires (Sentinel-2, Landsat) via l’API Google Earth Engine, selon une zone d’intérêt et une fréquence configurables. Il doit permettre l’extraction de données vectorielles OpenStreetMap (routes, bâtiments, occupation du sol) pour une emprise géographique donnée. Il doit permettre l’interrogation du service OpenRouteService pour obtenir des informations de routage et d’accessibilité (isochrones, distances). Il doit permettre la collecte de données complémentaires par web scraping lorsque celles-ci ne sont disponibles via aucune API officielle (par exemple des données météorologiques locales ou des indicateurs socio-économiques publiés sur des portails web). Il doit transformer les données brutes collectées : conversion de CRS, nettoyage, suppression des doublons, gestion des valeurs manquantes. Il doit calculer automatiquement le NDVI et d’autres indices dérivés à partir des bandes spectrales des images satellitaires. Il doit stocker l’ensemble des données transformées dans une base PostgreSQL/PostGIS organisée et indexée. Il doit exposer les données via une API REST permettant la consultation, le filtrage spatial et temporel, et le téléchargement des jeux de données. Il doit permettre la visualisation et l’analyse spatiale des données via QGIS, connecté directement à PostGIS. Il doit permettre la génération de rapports et de statistiques synthétiques (évolution du NDVI dans le temps, surfaces par classe d’occupation du sol). Il doit journaliser l’ensemble des opérations d’ingestion et de traitement, avec gestion des erreurs et alertes en cas d’échec.
+8.2 Besoins non fonctionnels
+En matière de performance, le système doit traiter les workflows d’ingestion planifiés (quotidiens ou hebdomadaires selon les sources) sans dégradation notable des temps de réponse de l’API d’exposition. En matière de fiabilité, chaque étape du pipeline NiFi doit intégrer une gestion des erreurs avec réessais automatiques et notification en cas d’échec persistant. En matière de disponibilité, les services conteneurisés doivent pouvoir redémarrer automatiquement en cas d’incident (politique de redémarrage Docker). En matière de maintenabilité, l’architecture doit être modulaire, documentée, et chaque composant doit pouvoir évoluer indépendamment grâce à la conteneurisation. En matière de scalabilité, la base de données doit être structurée pour supporter une croissance du volume de données (nouvelles zones géographiques, nouvelles sources) sans refonte majeure. En matière d’utilisabilité, l’interface d’exposition (API et interface web) doit être documentée (OpenAPI/Swagger) et simple d’utilisation pour un utilisateur non-développeur via QGIS ou un tableau de bord. En matière de portabilité, l’ensemble du système doit pouvoir être déployé sur toute machine disposant de Docker, indépendamment du système d’exploitation hôte.
+9. Description complète du flux de données
+9.1 Inputs (Sources de données)
+Google Earth Engine. Description : catalogue cloud d’images satellitaires et de produits géospatiaux prétraités, avec capacité de calcul distribué côté serveur. Type de données : imagerie multispectrale. Format : GeoTIFF (exporté vers stockage puis récupéré par NiFi). Nature : raster. Fréquence d’acquisition : hebdomadaire ou selon le cycle de revisite du satellite (5 jours pour Sentinel-2, 16 jours pour Landsat). Méthode de collecte : appels à l’API GEE (Python API / REST) déclenchés par NiFi, export vers un espace de stockage intermédiaire, puis récupération automatisée. Rôle dans le système : source principale d’imagerie brute pour le calcul du NDVI et d’autres indices dérivés.
+Imagerie satellitaire (Sentinel-2, Landsat). Description : bandes spectrales (rouge, proche infrarouge, etc.) nécessaires au calcul d’indices de végétation. Type de données : rasters multibandes. Format : GeoTIFF. Nature : raster. Fréquence : selon cycle de revisite satellitaire. Méthode de collecte : via Google Earth Engine ou téléchargement direct depuis Copernicus Open Access Hub / USGS en complément. Rôle : matière première du module de traitement NDVI et des couches thématiques environnementales.
+OpenStreetMap. Description : base de données géographique collaborative contenant routes, bâtiments, occupation du sol, points d’intérêt. Type de données : vecteur. Format : GeoJSON, Shapefile, ou PBF converti. Nature : vecteur. Fréquence d’acquisition : mensuelle ou à la demande selon les besoins d’analyse. Méthode de collecte : requêtes Overpass API ou extraits régionaux (extraits .osm.pbf), traités par NiFi. Rôle : référentiel vectoriel de contexte (réseaux routiers, bâti, occupation du sol) pour les analyses spatiales et le croisement avec les données raster.
+OpenRouteService. Description : service de calcul d’itinéraires, de matrices de distances et d’isochrones basé sur les données OSM. Type de données : résultats de routage et d’accessibilité. Format : JSON / GeoJSON. Nature : vecteur. Fréquence : à la demande, déclenchée par les besoins d’analyse d’accessibilité. Méthode de collecte : appels API REST orchestrés par NiFi. Rôle : enrichissement des analyses territoriales par des indicateurs d’accessibilité (temps de trajet, zones desservies).
+Web Scraping. Description : collecte de données complémentaires non disponibles via API officielle (par exemple données météorologiques locales, indicateurs environnementaux publiés par des organismes régionaux). Type de données : variable (tableaux, texte structuré). Format : converti en Parquet ou JSON après extraction. Nature : tabulaire. Fréquence : selon la fréquence de publication de la source (quotidienne à mensuelle). Méthode de collecte : scripts de scraping (Python, bibliothèques BeautifulSoup/Scrapy) orchestrés comme processeurs personnalisés dans NiFi (ExecuteScript / ExecuteStreamCommand). Rôle : données alternatives complémentaires enrichissant le contexte environnemental et socio-économique des zones étudiées.
+9.2 Collecte et ingestion des données (Apache NiFi)
+Apache NiFi constitue le cœur de l’orchestration du pipeline d’ingestion. La plateforme est organisée en plusieurs Process Groups, chacun dédié à une source de données (GEE, OSM, ORS, Web Scraping), ce qui permet une isolation logique, une maintenance indépendante et une supervision granulaire.
+Chaque Process Group repose sur une combinaison de processeurs standards et personnalisés. Pour Google Earth Engine, un processeur InvokeHTTP ou ExecuteStreamCommand (exécutant un script Python utilisant l’API GEE) initie l’export d’une image pour une zone et une période données ; un processeur GetFile/FetchS3Object (ou équivalent) récupère ensuite le fichier exporté. Pour OpenStreetMap, un processeur InvokeHTTP interroge l’Overpass API, ou un ExecuteStreamCommand déclenche un traitement osmium sur un extrait régional. Pour OpenRouteService, un processeur InvokeHTTP envoie des requêtes REST paramétrées. Pour le Web Scraping, un ExecuteStreamCommand exécute un script dédié par source.
+La planification (scheduling) de chaque flux est configurée selon la fréquence propre à chaque source : cron-driven pour les tâches périodiques (quotidien, hebdomadaire), ou timer-driven pour les vérifications régulières de disponibilité de nouvelles données. Un processeur de surveillance de fichiers (ListFile/WatchDirectory) permet de détecter l’arrivée de nouveaux exports (notamment depuis GEE) dans un répertoire de dépôt intermédiaire.
+Chaque flux applique ensuite une chaîne ETL standardisée : validation du format reçu, extraction de métadonnées (date, zone, source), routage conditionnel (RouteOnAttribute) selon le type de données, puis transmission vers les processeurs de transformation (section 9.3) avant écriture finale dans PostgreSQL/PostGIS via des processeurs PutDatabaseRecord/PutSQL.
+La journalisation est assurée nativement par NiFi (provenance des données, logs applicatifs), complétée par des processeurs LogAttribute à des points clés du flux. La supervision s’appuie sur l’interface NiFi (Data Provenance, Bulletin Board) et peut être complétée par des alertes envoyées via un processeur PutEmail ou un webhook en cas d’échec. La gestion des erreurs repose sur les relations failure de chaque processeur, redirigées vers des files d’attente dédiées avec politique de réessai (backoff) avant notification d’échec définitif.
+9.3 Traitement et transformation des données
+Une fois collectées, les données brutes traversent une chaîne de traitement visant à les rendre cohérentes, propres et exploitables.
+La validation des données vérifie l’intégrité des fichiers reçus (lisibilité du GeoTIFF, validité de la géométrie GeoJSON) et rejette les fichiers corrompus vers une file d’erreurs. Le nettoyage corrige les incohérences détectées (géométries invalides, encodages incorrects). La suppression des doublons s’appuie sur des clés naturelles (identifiant OSM, couple date/zone pour les images satellites) afin d’éviter les insertions redondantes. La gestion des valeurs manquantes applique des règles définies par type de donnée (interpolation, exclusion, marquage explicite en base).
+L’extraction de métadonnées consiste à documenter systématiquement chaque jeu de données : source, date d’acquisition, système de projection, résolution spatiale, licence. La conversion de système de coordonnées (CRS) harmonise l’ensemble des données vers un référentiel commun (typiquement EPSG:4326 pour l’échange et EPSG:326xx UTM pour les calculs métriques locaux), à l’aide d’outils GDAL/PROJ intégrés dans les scripts de transformation.
+La conversion de format standardise les livrables selon les types définis : GeoTIFF pour le raster, GeoJSON/Shapefile pour le vecteur, Parquet pour le tabulaire. La normalisation harmonise les unités, les nomenclatures d’attributs et les échelles de valeurs entre sources différentes. Le découpage spatial (clipping) restreint les données à l’emprise de la zone d’étude définie. Le filtrage spatial élimine les entités hors du périmètre pertinent (par exemple filtrage par type de route ou par classe d’occupation du sol). Les jointures spatiales croisent les couches vectorielles (OSM) avec les résultats raster (NDVI) pour produire des statistiques zonales.
+Le calcul du NDVI, élément central du module de traitement, s’effectue selon la formule standard NDVI = (NIR − Rouge) / (NIR + Rouge), appliquée pixel par pixel sur les bandes proche infrarouge et rouge des images Sentinel-2/Landsat, via des bibliothèques de traitement raster (rasterio, numpy, ou directement via les fonctions serveur de Google Earth Engine avant export). D’autres indices dérivés peuvent être calculés selon les mêmes principes (NDWI pour l’eau, indices de couverture du sol).
+La génération de couches thématiques (végétation, plans d’eau, zones urbaines) s’appuie sur un seuillage des indices calculés et sur le croisement avec les couches OSM d’occupation du sol. L’harmonisation des jeux de données hétérogènes consiste à aligner spatialement et temporellement les couches raster et vectorielles issues de sources différentes avant leur insertion en base.
+À l’issue de cette chaîne, les données brutes hétérogènes sont transformées en jeux de données standardisés, documentés, géoréférencés de façon cohérente et prêts à être stockés et interrogés.
+9.4 Centralisation et gestion des données
+Le référentiel central du système repose sur PostgreSQL étendu par l’extension spatiale PostGIS. L’architecture de la base distingue plusieurs schémas logiques : un schéma raw pour les données brutes horodatées, un schéma processed pour les données transformées (NDVI, couches thématiques), un schéma metadata pour la documentation des jeux de données, et un schéma users pour la gestion des accès.
+Les capacités spatiales de PostGIS sont exploitées pour le stockage de géométries (points, lignes, polygones) et de rasters (via l’extension raster de PostGIS ou un stockage hybride fichier/référence en base), ainsi que pour l’exécution de requêtes spatiales (intersections, tampons, jointures spatiales) directement en SQL.
+L’organisation des jeux de données repose sur une nomenclature normalisée (source, type, zone, date) et une table de métadonnées centralisée référençant chaque dataset (description, licence, date de collecte, système de projection, lien vers le fichier ou l’objet raster). L’indexation spatiale s’appuie sur des index GiST sur les colonnes géométriques, garantissant des performances de requêtage acceptables même à volumétrie croissante.
+Le versionnement des jeux de données est assuré par un couple (identifiant logique, numéro de version, date de génération), permettant de conserver l’historique des traitements (par exemple plusieurs générations de NDVI pour une même zone à des dates différentes) sans écraser les données précédentes.
+La gestion des utilisateurs et le contrôle d’accès s’appuient sur les rôles natifs de PostgreSQL (rôles en lecture seule pour les consommateurs, rôles d’écriture pour les pipelines NiFi, rôle administrateur pour la maintenance), complétés par une couche d’authentification au niveau de l’API REST (jetons/API keys).
+La stratégie de sauvegarde repose sur des sauvegardes régulières (pg_dump/pg_basebackup) planifiées, stockées sur un volume Docker persistant distinct, avec rotation des sauvegardes. L’intégrité des données est garantie par des contraintes SQL (clés primaires, contraintes de validité géométrique via ST_IsValid), et l’optimisation des performances repose sur le partitionnement des tables volumineuses par zone ou par période, ainsi que sur l’ajustement des paramètres PostgreSQL (mémoire, cache, parallélisme des requêtes).
+9.5 Exposition et exploitation des données
+Les données centralisées sont exposées à travers plusieurs canaux complémentaires. Une API REST (développée par exemple avec FastAPI ou Node.js/Express) expose des endpoints de consultation (liste des jeux de données disponibles, métadonnées), de requêtage spatial (filtrage par zone, par date, par type d’indice) et de téléchargement des fichiers dans les formats standardisés (GeoTIFF, GeoJSON, Shapefile, Parquet), avec réponses JSON pour les échanges structurés.
+Une application web légère permet la visualisation cartographique interactive des couches NDVI et des couches thématiques (via une bibliothèque telle que Leaflet ou OpenLayers), ainsi que la consultation de statistiques synthétiques sous forme de tableaux de bord.
+Un service de téléchargement permet aux utilisateurs autorisés d’exporter des jeux de données complets selon des critères spatio-temporels.
+L’intégration QGIS s’effectue par connexion directe à la base PostGIS (couche de données PostGIS dans QGIS) ou via les endpoints de l’API REST (couches WFS/WMS si un serveur cartographique complémentaire est ajouté en option), permettant aux analystes SIG d’effectuer des requêtes spatiales avancées, des analyses de proximité et des validations visuelles directement dans leur environnement de travail habituel.
+Les requêtes spatiales exposées incluent le filtrage par emprise géographique, la sélection par plage temporelle, et le calcul de statistiques zonales (moyenne NDVI par polygone). La visualisation s’appuie sur des couches cartographiques stylisées (dégradés de couleur pour le NDVI) et des graphiques d’évolution temporelle. Le module de reporting génère des synthèses automatisées (rapport PDF/HTML périodique récapitulant l’état de végétation d’une zone donnée).
+Ainsi, les applications tierces consomment les données via l’API REST (format JSON ou fichiers téléchargeables), tandis que les utilisateurs SIG les exploitent directement via QGIS, et les décideurs consultent les tableaux de bord synthétiques de l’application web.
+9.6 Outputs (Produits générés)
+Les outputs de la plateforme comprennent : l’imagerie satellitaire prétraitée (corrigée et découpée selon la zone d’étude) ; les rasters NDVI calculés par date et par zone ; les cartes thématiques NDVI (visualisations stylisées) ; les statistiques NDVI (moyenne, min, max, écart-type par zone et par période) ; les cartes de densité de végétation ; les cartes d’occupation du sol dérivées (végétation, eau, zones urbaines) ; des indicateurs environnementaux synthétiques ; des jeux de données au format GeoTIFF (rasters) ; des jeux de données au format GeoJSON et Shapefile (vecteurs) ; des jeux de données au format Apache Parquet (tabulaires) ; des réponses API au format JSON ; des rapports automatisés (PDF/HTML) ; et des tableaux de bord interactifs consultables via l’application web.
+9.7 Conteneurisation Docker
+L’ensemble de la plateforme est conteneurisé afin de garantir portabilité, reproductibilité et facilité de déploiement. Le conteneur Apache NiFi héberge l’ensemble des flux d’ingestion et de transformation décrits en 9.2 et 9.3. Le conteneur PostgreSQL/PostGIS héberge la base de données centralisée décrite en 9.4. Le conteneur backend applicatif héberge l’API REST d’exposition des données (section 9.5). Le conteneur frontend applicatif héberge l’application web de visualisation et de tableaux de bord.
+L’orchestration de ces conteneurs est réalisée via Docker Compose, qui définit les services, leurs dépendances de démarrage, leurs variables d’environnement et leurs politiques de redémarrage. Un réseau Docker dédié (bridge network) isole la communication interne entre les conteneurs (NiFi → PostgreSQL, backend → PostgreSQL, frontend → backend), tout en n’exposant publiquement que les ports strictement nécessaires (interface NiFi, API REST, application web).
+Des volumes Docker persistants sont définis pour la base de données (garantissant la persistance des données au-delà du cycle de vie des conteneurs), pour le référentiel de fichiers bruts et transformés (GeoTIFF, GeoJSON, Parquet), et pour les répertoires de configuration et de flux NiFi.
+La communication inter-conteneurs s’effectue via les noms de services Docker Compose (résolution DNS interne), évitant toute dépendance à des adresses IP statiques. La stratégie de déploiement privilégie un déploiement local ou sur un serveur unique pour le cadre du PFA, tout en conservant une architecture compatible avec une montée en charge future (déploiement multi-hôtes, orchestration Kubernetes en option non retenue pour ce projet). La portabilité est assurée par le fait que l’ensemble de l’environnement (dépendances, versions, configuration) est décrit de manière déclarative dans les fichiers Docker Compose et Dockerfile, permettant un déploiement identique sur toute machine disposant de Docker. La scalabilité horizontale reste possible à terme par duplication de certains services (par exemple plusieurs instances du backend derrière un répartiteur de charge), bien que cela ne soit pas requis dans le périmètre initial du projet.
+10. Technologies retenues
+Google Earth Engine est retenu pour sa capacité à fournir un accès simplifié et gratuit (pour un usage académique) à un catalogue mondial d’images satellitaires prétraitées, avec des capacités de calcul côté serveur qui réduisent la charge de traitement local.
+Apache NiFi est retenu comme moteur d’orchestration ETL car il offre une interface graphique de conception de flux, une gestion native de la provenance des données (traçabilité), une architecture extensible par processeurs personnalisés, et une bonne intégration avec des scripts externes (Python) nécessaires pour l’appel aux API GEE/ORS et le web scraping.
+PostgreSQL est retenu pour sa robustesse, sa maturité, sa licence open source et son écosystème riche d’extensions, en particulier PostGIS, qui en fait une référence pour le stockage et le requêtage de données géospatiales (vecteur et raster) dans un cadre académique comme professionnel.
+QGIS est retenu comme client SIG open source de référence, permettant la visualisation, la validation visuelle et l’analyse spatiale avancée des données produites, sans coût de licence.
+Docker est retenu pour garantir la reproductibilité de l’environnement de développement et de déploiement, faciliter la démonstration du projet lors de la soutenance, et illustrer une compétence recherchée en ingénierie logicielle moderne.
+OpenStreetMap est retenu comme source de données vectorielles de référence, gratuite, mondiale et régulièrement mise à jour par une communauté active.
+OpenRouteService est retenu car il s’appuie directement sur les données OSM et fournit des services de routage et d’accessibilité sans coût pour un usage académique, complétant ainsi l’analyse territoriale.
+Le Web Scraping est retenu comme méthode complémentaire, non pour remplacer les API officielles mais pour couvrir les sources de données alternatives ne disposant d’aucune interface programmatique, conformément à l’esprit du projet (données alternatives).
+11. Exigences fonctionnelles
+Le système doit permettre la configuration d’une ou plusieurs zones d’intérêt géographiques (bounding box ou polygone). Il doit permettre la planification automatique des tâches de collecte pour chaque source de données. Il doit permettre le déclenchement manuel ponctuel d’une collecte pour test ou démonstration. Il doit convertir automatiquement les données collectées vers les formats cibles définis (GeoTIFF, GeoJSON, Shapefile, Parquet). Il doit calculer automatiquement le NDVI dès qu’une nouvelle image satellite est disponible pour une zone surveillée. Il doit stocker chaque jeu de données avec ses métadonnées associées. Il doit permettre la recherche de jeux de données par zone, date, type et source. Il doit permettre le téléchargement sécurisé des jeux de données via l’API REST. Il doit permettre la visualisation cartographique des couches NDVI et thématiques via l’application web. Il doit permettre la connexion directe depuis QGIS à la base PostGIS pour analyse avancée. Il doit journaliser chaque exécution de flux NiFi avec horodatage, statut et éventuels messages d’erreur. Il doit permettre la génération de rapports statistiques périodiques par zone.
+12. Exigences non fonctionnelles
+Performance : les traitements NDVI pour une zone d’étude de taille standard (quelques centaines de km²) doivent s’exécuter en un temps raisonnable compatible avec une fréquence de mise à jour hebdomadaire ; les requêtes API de consultation doivent répondre en quelques secondes pour des volumes de données typiques d’un projet académique.
+Fiabilité : chaque flux NiFi doit intégrer une gestion des erreurs avec réessais automatiques et isolation des enregistrements en échec, sans interruption du reste du pipeline.
+Disponibilité : les conteneurs critiques (base de données, API) doivent être configurés avec une politique de redémarrage automatique en cas d’arrêt inattendu.
+Maintenabilité : le code du backend, les scripts de traitement et les flux NiFi doivent être documentés et versionnés (Git), avec une séparation claire des responsabilités entre modules.
+Scalabilité : le schéma de base de données et l’architecture des conteneurs doivent permettre l’ajout de nouvelles zones d’étude ou de nouvelles sources de données sans remise en cause de l’architecture globale.
+Utilisabilité : l’API doit être documentée via une spécification OpenAPI/Swagger ; l’application web doit proposer une navigation simple et intuitive pour un utilisateur non-développeur.
+13. Exigences de sécurité
+L’accès à l’API REST doit être protégé par un mécanisme d’authentification (clé API ou jeton JWT) distinguant au minimum les rôles lecture seule et administration. Les identifiants de connexion à la base PostgreSQL et aux services externes (GEE, ORS) doivent être stockés sous forme de variables d’environnement ou de secrets Docker, jamais en dur dans le code source. Les communications entre le frontend, le backend et l’utilisateur final doivent être chiffrées (HTTPS) en environnement de production. Les rôles PostgreSQL doivent appliquer le principe du moindre privilège (le pipeline NiFi dispose d’un rôle d’écriture restreint, les consommateurs d’un rôle lecture seule). Les journaux d’accès et d’erreurs doivent être conservés pour permettre un audit a posteriori en cas d’incident. Les données scrapées doivent être collectées dans le respect des conditions d’utilisation des sites sources et de la réglementation applicable (respect des fichiers robots.txt, limitation de la fréquence des requêtes).
+14. Contraintes techniques
+Le projet doit être développé en respectant strictement la pile technologique imposée (NiFi, PostgreSQL/PostGIS, QGIS, Docker, GEE, OSM, ORS), sans recours à des technologies de traitement distribué à grande échelle (Spark, Hadoop) ni à des files de messages dédiées (Kafka, RabbitMQ), jugées disproportionnées par rapport au volume de données traité dans le cadre d’un PFA. L’accès à Google Earth Engine nécessite un compte approuvé et est soumis aux quotas d’utilisation imposés par Google pour les comptes non commerciaux. Les performances de traitement dépendent des ressources matérielles disponibles (mémoire, CPU) sur la machine de développement/déploiement, ce qui limite la taille des zones d’étude pouvant être traitées dans des délais raisonnables. La disponibilité et la stabilité des API tierces (Overpass API, ORS) ne sont pas garanties par le projet et peuvent introduire des délais ou échecs ponctuels dans les flux d’ingestion.
+15. Contraintes du projet
+Contraintes budgétaires : le projet doit être réalisé exclusivement avec des outils open source ou des offres gratuites pour usage académique (GEE, OSM, ORS, PostgreSQL, NiFi, QGIS, Docker), sans budget alloué à des licences commerciales.
+Contraintes techniques : disponibilité d’une machine de développement suffisamment puissante pour exécuter simultanément les conteneurs NiFi, PostgreSQL et les services applicatifs.
+Contraintes organisationnelles : le projet est mené par un nombre restreint d’étudiants (individuel ou binôme), avec un accès limité à un encadrement industriel ; la coordination avec l’encadrant académique doit suivre le calendrier de suivi de PFA de l’établissement.
+Contraintes temporelles : le projet doit être réalisé dans le calendrier académique imparti (typiquement 4 à 6 mois), incluant la conception, le développement, les tests, la rédaction du rapport et la préparation de la soutenance.
+16. Analyse des risques
+Risque
+Probabilité
+Impact
+Stratégie de mitigation
+Indisponibilité ou changement des quotas de l’API Google Earth Engine
+Moyenne
+Élevé
+Prévoir un mode de repli avec téléchargement direct depuis Copernicus/USGS
+Instabilité des API tierces (Overpass, ORS)
+Moyenne
+Moyen
+Implémenter des mécanismes de réessai et de mise en cache locale des résultats
+Volumétrie de données dépassant les capacités matérielles disponibles
+Moyenne
+Élevé
+Limiter la zone d’étude pilote et prévoir un partitionnement des données
+Hétérogénéité des CRS entraînant des erreurs de superposition spatiale
+Élevée
+Élevé
+Standardiser systématiquement la conversion CRS dès l’ingestion
+Blocage ou évolution des sites web ciblés par le scraping
+Moyenne
+Moyen
+Concevoir des scripts modulaires et adapter le scraping aux sources les plus stables
+Retard dans le calendrier académique
+Moyenne
+Moyen
+Planification avec jalons intermédiaires et marges de sécurité
+Complexité d’intégration entre NiFi, PostGIS et l’API REST
+Moyenne
+Moyen
+Prototypage précoce d’une chaîne bout-en-bout minimale (MVP) avant extension
+Non-respect des conditions d’utilisation des sources scrapées
+Faible
+Moyen
+Vérification systématique des robots.txt et des CGU avant intégration d’une source
+17. Hypothèses
+Il est supposé que l’étudiant dispose d’un accès validé à Google Earth Engine pour usage académique. Il est supposé que la ou les zones d’étude pilotes seront définies dès le début du projet et resteront stables pendant toute sa durée. Il est supposé que les API tierces (Overpass, ORS) resteront disponibles et gratuites pour un usage de recherche/académique pendant la durée du projet. Il est supposé que la machine de développement dispose de ressources suffisantes (au minimum 8 Go de RAM, idéalement 16 Go, et un espace disque suffisant pour le stockage des rasters). Il est supposé que le volume de données traité restera compatible avec une architecture mono-serveur, sans nécessiter de solution de calcul distribué.
+18. Livrables attendus
+Les livrables attendus du projet comprennent : le rapport de PFA incluant le présent cahier des charges, l’analyse de conception et le bilan du projet ; le code source complet du système (flux NiFi exportés, scripts de transformation, backend API, frontend, schéma de base de données) versionné sur un dépôt Git ; les fichiers Docker Compose et Dockerfile permettant le déploiement complet de la plateforme ; la documentation technique (architecture, schéma de base de données, documentation API au format OpenAPI) ; un jeu de données de démonstration (une zone d’étude pilote entièrement traitée, incluant NDVI et couches thématiques) ; les projets QGIS préconfigurés pour la visualisation et la validation des données ; une présentation de soutenance synthétisant la démarche et les résultats.
+19. Planning prévisionnel
+Le planning prévisionnel ci-dessous couvre une durée typique de PFA de 20 semaines, structurée en phases successives avec chevauchement partiel :
+Phase
+Semaines
+Activités principales
+Phase 1 — Cadrage et conception
+S1–S3
+Analyse des besoins, étude de l’existant, conception de l’architecture, rédaction du cahier des charges
+Phase 2 — Mise en place de l’environnement
+S4–S5
+Installation et configuration Docker, NiFi, PostgreSQL/PostGIS, QGIS
+Phase 3 — Développement des flux d’ingestion
+S6–S9
+Développement des processeurs NiFi pour GEE, OSM, ORS et web scraping
+Phase 4 — Traitement et transformation
+S10–S13
+Développement des modules de nettoyage, conversion CRS, calcul NDVI, couches thématiques
+Phase 5 — Centralisation et modélisation des données
+S12–S14
+Conception du schéma PostGIS, indexation, versionnement, métadonnées (en parallèle de la phase 4)
+Phase 6 — Développement de l’exposition des données
+S14–S17
+Développement de l’API REST, intégration QGIS, application web de visualisation
+Phase 7 — Tests et validation
+S17–S18
+Tests fonctionnels, tests de bout en bout, validation des indicateurs NDVI
+Phase 8 — Rédaction et soutenance
+S18–S20
+Finalisation du rapport, préparation de la présentation, soutenance
+20. Critères de validation et d’acceptation
+Le projet sera considéré comme validé si les critères suivants sont satisfaits : au moins un flux NiFi complet fonctionne de bout en bout pour chacune des sources définies (GEE, OSM, ORS, web scraping), depuis la collecte jusqu’à l’insertion en base ; le calcul du NDVI est fonctionnel et produit des résultats cohérents et visuellement validés sur QGIS pour la zone d’étude pilote ; la base de données PostgreSQL/PostGIS est correctement structurée, indexée et documentée ; l’API REST expose au minimum les endpoints de consultation, de requêtage spatial et de téléchargement, avec documentation associée ; l’ensemble des composants se déploie correctement via une seule commande Docker Compose sur une machine tierce ; la traçabilité des traitements (logs, métadonnées) permet de reconstituer l’origine et l’historique de chaque jeu de données ; le rapport de PFA documente fidèlement l’architecture, les choix techniques et les résultats obtenus.
+21. Perspectives d’évolution
+Plusieurs axes d’évolution peuvent être envisagés au-delà du périmètre initial du PFA. L’ajout d’algorithmes de classification supervisée ou non supervisée pour une cartographie automatisée de l’occupation du sol, au-delà des seuils simples appliqués aux indices de végétation, constitue une extension naturelle mais optionnelle. L’intégration d’un serveur cartographique dédié (GeoServer ou MapServer) pourrait enrichir l’exposition des données via des standards OGC (WMS/WFS), en complément de l’API REST existante ; cette brique est présentée comme un enrichissement optionnel, non indispensable au fonctionnement du système. L’extension à d’autres indices environnementaux (NDWI pour l’eau, indices de stress hydrique) permettrait d’élargir les usages environnementaux de la plateforme. La mise en place d’une infrastructure multi-nœuds pourrait être envisagée si le volume de données ou le nombre de zones d’étude venait à croître significativement, mais ceci dépasserait le cadre raisonnable d’un projet de fin d’études. Enfin, une application mobile de terrain permettant la remontée d’observations de vérification terrain (ground truthing) pourrait enrichir la validation des indices calculés dans une phase ultérieure du projet.
+Synthèse du flux de données de bout en bout
+Le fonctionnement global de la plateforme peut se résumer par la chaîne suivante :
+Sources de données (GEE, imagerie satellitaire, OSM, ORS, Web Scraping) → Apache NiFi (collecte et orchestration) → Traitement et transformation (nettoyage, conversion CRS, calcul NDVI, harmonisation) → PostgreSQL + PostGIS (centralisation et indexation spatiale) → Gestion des données (métadonnées, versionnement, contrôle d’accès) → API REST / Application web (exposition) → QGIS (visualisation et analyse spatiale) → Utilisateurs finaux (décideurs, analystes SIG, applications tierces)
+Chaque maillon de cette chaîne a été choisi pour répondre à un besoin précis identifié dans l’analyse des besoins : NiFi apporte l’automatisation et la traçabilité de la collecte multi-source ; les traitements de transformation garantissent l’harmonisation de données par nature hétérogènes ; PostgreSQL/PostGIS offre un référentiel spatial centralisé, performant et gouverné ; l’API REST et l’application web démocratisent l’accès aux données pour des utilisateurs non spécialistes ; QGIS complète le dispositif pour les analyses SIG avancées ; et Docker garantit que l’ensemble de cette chaîne reste portable, reproductible et déployable dans un cadre académique comme dans une perspective d’évolution future.

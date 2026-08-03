@@ -17,7 +17,7 @@ from streamlit_folium import st_folium
 # ---------------------------------------------------------------------------
 # CONFIG — à adapter une seule fois
 # ---------------------------------------------------------------------------
-EE_PROJECT_ID = "ton-projet-google-cloud"   # <-- remplace par l'ID de ton projet GEE
+EE_PROJECT_ID = "gee-amina"   # <-- remplace par l'ID de ton projet GEE
 IMERG_COLLECTION = "NASA/GPM_L3/IMERG_V07"  # imagerie satellite, pas de pluviomètres au sol
 PRECIP_BAND = "precipitation"               # mm/h, moyenne sur la demi-heure
 IMERG_SCALE_M = 11132                       # résolution native ~0.1° (~11 km)

@@ -1,0 +1,41 @@
+services:
+  nifi:
+    image: apache/nifi:1.28.1
+    container_name: geodata-nifi
+    ports:
+      - "8080:8080"
+    environment:
+      - NIFI_WEB_HTTP_PORT=8080
+    volumes:
+      - nifi_conf:/opt/nifi/nifi-current/conf
+      - nifi_database_repository:/opt/nifi/nifi-current/database_repository
+      - nifi_flowfile_repository:/opt/nifi/nifi-current/flowfile_repository
+      - nifi_content_repository:/opt/nifi/nifi-current/content_repository
+      - nifi_provenance_repository:/opt/nifi/nifi-current/provenance_repository
+      - nifi_state:/opt/nifi/nifi-current/state
+      - ./nifi/data:/opt/nifi/data
+    restart: unless-stopped
+
+  # Google Earth Engine n'a pas de connecteur natif dans NiFi : ce petit service
+  # exécute périodiquement le script Python d'export NDVI et dépose le résultat
+  # dans ./nifi/data/gee, que NiFi surveille ensuite (ListFile/FetchFile).
+  gee-exporter:
+    build:
+      context: ./nifi/scripts
+    container_name: geodata-gee-exporter
+    environment:
+      - EE_PROJECT_ID=${EE_PROJECT_ID}
+      - INTERVAL_HOURS=${GEE_INTERVAL_HOURS:-24}
+      - LOOKBACK_DAYS=${GEE_LOOKBACK_DAYS:-14}
+    volumes:
+      - ${EE_CONFIG_DIR}:/root/.config/earthengine:ro
+      - ./nifi/data/gee:/data/gee
+    restart: unless-stopped
+
+volumes:
+  nifi_conf:
+  nifi_database_repository:
+  nifi_flowfile_repository:
+  nifi_content_repository:
+  nifi_provenance_repository:
+  nifi_state:

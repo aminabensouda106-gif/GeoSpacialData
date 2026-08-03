@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+
+# Données déposées par les flux NiFi (fichiers volumineux / régénérables)
+nifi/data/**
+!nifi/data/.gitkeep
