@@ -2,7 +2,14 @@
 __pycache__/
 *.pyc
 .venv/
+.venv-test/
+node_modules/
+dist/
+build/
 
-# Données déposées par les flux NiFi (fichiers volumineux / régénérables)
-nifi/data/**
-!nifi/data/.gitkeep
+# test artifacts
+.pytest_cache/
+
+# sample data is versioned deliberately (small, synthetic) — but not scratch
+# output written by connectors/notebooks during local runs
+sample-data/**/_scratch/

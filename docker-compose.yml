@@ -1,81 +1,179 @@
-version: "3.8"
-
 services:
-  nifi:
-    image: apache/nifi:1.28.1
-    container_name: geodata-nifi
+  # --- M1: object storage + relational catalog store -----------------------
+
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    container_name: geo-seaweedfs
+    command: >
+      server
+      -dir=/data
+      -master.volumeSizeLimitMB=1024
+      -filer
+      -s3
+      -s3.config=/etc/seaweedfs/s3.json
+      -s3.port=8333
+      -ip.bind=0.0.0.0
     ports:
-      - "8080:8080"
-    environment:
-      - NIFI_WEB_HTTP_PORT=8080
+      - "8333:8333" # S3 API
+      - "9333:9333" # master
+      - "8888:8888" # filer
     volumes:
-      - nifi_conf:/opt/nifi/nifi-current/conf
-      - nifi_database_repository:/opt/nifi/nifi-current/database_repository
-      - nifi_flowfile_repository:/opt/nifi/nifi-current/flowfile_repository
-      - nifi_content_repository:/opt/nifi/nifi-current/content_repository
-      - nifi_provenance_repository:/opt/nifi/nifi-current/provenance_repository
-      - nifi_state:/opt/nifi/nifi-current/state
-      - ./nifi/data:/opt/nifi/data
+      - seaweedfs_data:/data
+      - ./infra/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:9333/cluster/status"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
     restart: unless-stopped
+    networks: [platform]
 
-  # Google Earth Engine n'a pas de connecteur natif dans NiFi : ce petit service
-  # exécute périodiquement le script Python d'export NDVI et dépose le résultat
-  # dans ./nifi/data/gee, que NiFi surveille ensuite (ListFile/FetchFile).
-  gee-exporter:
-    build:
-      context: ./nifi/scripts
-    container_name: geodata-gee-exporter
-    environment:
-      - EE_PROJECT_ID=${EE_PROJECT_ID}
-      - INTERVAL_HOURS=${GEE_INTERVAL_HOURS:-24}
-      - LOOKBACK_DAYS=${GEE_LOOKBACK_DAYS:-14}
-    volumes:
-      - ${EE_CONFIG_DIR}:/root/.config/earthengine:ro
-      - ./nifi/data/gee:/data/gee
-    restart: unless-stopped
-
-  keycloak-postgres:
-    image: postgres:16
-    container_name: keycloak-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_password}
-    volumes:
-      - keycloak_postgres_data:/var/lib/postgresql/data
-    networks:
-      - keycloak-network
-
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.7
-    container_name: keycloak
-    restart: unless-stopped
-    command: start-dev
-    environment:
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://keycloak-postgres:5432/keycloak
-      KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_password}
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin_password}
-      KC_HOSTNAME: localhost
-    ports:
-      - "8081:8080"
+  seaweedfs-init:
+    image: amazon/aws-cli:2.17.62
+    container_name: geo-seaweedfs-init
     depends_on:
-      - keycloak-postgres
-    networks:
-      - keycloak-network
+      seaweedfs:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "/scripts/init-buckets.sh"]
+    environment:
+      AWS_ACCESS_KEY_ID: ${SEAWEEDFS_ACCESS_KEY:-platform}
+      AWS_SECRET_ACCESS_KEY: ${SEAWEEDFS_SECRET_KEY:-platform-dev-secret-please-rotate}
+      AWS_DEFAULT_REGION: us-east-1
+    volumes:
+      - ./infra/seaweedfs/init-buckets.sh:/scripts/init-buckets.sh:ro
+    networks: [platform]
+
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: geo-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-platform}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-platform-dev-secret-please-rotate}
+      POSTGRES_DB: platform
+      # lakekeeper isn't in the master prompt's §4 database list (pgstac,
+      # dagster, cube, platform) but Lakekeeper needs its own Postgres-backed
+      # catalog metadata store to run at all — added here rather than as a
+      # new service, since it's just another database on the one Postgres
+      # instance already planned. See docs/adr/0002.
+      POSTGRES_MULTIPLE_DATABASES: pgstac,dagster,cube,platform,lakekeeper
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init-multiple-db.sh:/docker-entrypoint-initdb.d/init-multiple-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+    networks: [platform]
+
+  # --- M2: Iceberg catalog + orchestration + notebook -----------------------
+
+  # Lakekeeper's own CLI: "The database must be migrated before running the
+  # server" — a one-shot job the master prompt's example command didn't
+  # mention. Found via `docker run quay.io/lakekeeper/catalog:v0.11.1 --help`
+  # after `serve` failed with "relation \"server\" does not exist".
+  lakekeeper-migrate:
+    image: quay.io/lakekeeper/catalog:v0.11.1
+    container_name: geo-lakekeeper-migrate
+    command: ["migrate"]
+    environment:
+      LAKEKEEPER__PG_ENCRYPTION_KEY: ${LAKEKEEPER_ENCRYPTION_KEY:-lakekeeper-dev-encryption-key-please-rotate}
+      LAKEKEEPER__PG_DATABASE_URL_READ: postgresql://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform-dev-secret-please-rotate}@postgres:5432/lakekeeper
+      LAKEKEEPER__PG_DATABASE_URL_WRITE: postgresql://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform-dev-secret-please-rotate}@postgres:5432/lakekeeper
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [platform]
+
+  lakekeeper:
+    image: quay.io/lakekeeper/catalog:v0.11.1
+    container_name: geo-lakekeeper
+    command: ["serve"]
+    environment:
+      LAKEKEEPER__PG_ENCRYPTION_KEY: ${LAKEKEEPER_ENCRYPTION_KEY:-lakekeeper-dev-encryption-key-please-rotate}
+      LAKEKEEPER__PG_DATABASE_URL_READ: postgresql://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform-dev-secret-please-rotate}@postgres:5432/lakekeeper
+      LAKEKEEPER__PG_DATABASE_URL_WRITE: postgresql://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform-dev-secret-please-rotate}@postgres:5432/lakekeeper
+    ports:
+      - "8181:8181"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      lakekeeper-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "/home/nonroot/lakekeeper", "healthcheck"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    restart: unless-stopped
+    networks: [platform]
+
+  lakekeeper-init:
+    image: curlimages/curl:8.10.1
+    container_name: geo-lakekeeper-init
+    depends_on:
+      lakekeeper:
+        condition: service_healthy
+      seaweedfs-init:
+        condition: service_completed_successfully
+    entrypoint: ["/bin/sh", "/scripts/init-lakekeeper.sh"]
+    volumes:
+      - ./infra/lakekeeper/init-lakekeeper.sh:/scripts/init-lakekeeper.sh:ro
+      - ./infra/lakekeeper/create-default-warehouse.json:/scripts/create-default-warehouse.json:ro
+    networks: [platform]
+
+  dagster:
+    build:
+      context: ./orchestration
+    container_name: geo-dagster
+    environment:
+      DAGSTER_PG_USERNAME: ${POSTGRES_USER:-platform}
+      DAGSTER_PG_PASSWORD: ${POSTGRES_PASSWORD:-platform-dev-secret-please-rotate}
+      LAKEKEEPER_URI: http://lakekeeper:8181/catalog
+      LAKEKEEPER_WAREHOUSE: poc
+      SEAWEEDFS_ENDPOINT: http://seaweedfs:8333
+      SEAWEEDFS_ACCESS_KEY: ${SEAWEEDFS_ACCESS_KEY:-platform}
+      SEAWEEDFS_SECRET_KEY: ${SEAWEEDFS_SECRET_KEY:-platform-dev-secret-please-rotate}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      lakekeeper:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [platform]
+
+  jupyter:
+    build:
+      context: ./infra/jupyter
+    container_name: geo-jupyter
+    ports:
+      - "8890:8888" # 8888 is already used by the seaweedfs filer on the host
+    volumes:
+      - ./notebooks:/home/jovyan/notebooks
+    environment:
+      SEAWEEDFS_ENDPOINT: http://seaweedfs:8333
+      SEAWEEDFS_ACCESS_KEY: ${SEAWEEDFS_ACCESS_KEY:-platform}
+      SEAWEEDFS_SECRET_KEY: ${SEAWEEDFS_SECRET_KEY:-platform-dev-secret-please-rotate}
+      LAKEKEEPER_URI: http://lakekeeper:8181/catalog
+      LAKEKEEPER_WAREHOUSE: poc
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [platform]
 
 volumes:
-  nifi_conf:
-  nifi_database_repository:
-  nifi_flowfile_repository:
-  nifi_content_repository:
-  nifi_provenance_repository:
-  nifi_state:
-  keycloak_postgres_data:
+  seaweedfs_data:
+  postgres_data:
 
 networks:
-  keycloak-network:
+  platform:
     driver: bridge

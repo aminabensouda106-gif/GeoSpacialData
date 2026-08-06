@@ -1,0 +1,18 @@
+{
+  "identities": [
+    {
+      "name": "platform",
+      "credentials": [
+        {
+          "accessKey": "platform",
+          "secretKey": "platform-dev-secret-please-rotate"
+        }
+      ],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    },
+    {
+      "name": "anonymous",
+      "actions": ["Read:assets", "Read:serving"]
+    }
+  ]
+}
