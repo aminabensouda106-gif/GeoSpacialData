@@ -1,0 +1,31 @@
+id: employment_indicators
+title: "Employment indicators by commune"
+description: >
+  Synthetic monthly employment counts and rates by commune, generated
+  locally for the POC. Not to be used for real policy or investment
+  decisions — it is fixture data, not an official statistic.
+source:
+  type: api_source
+  endpoint: "sample-data/employment_indicators"
+  auth: none
+extract:
+  mode: full
+target:
+  modality: tabular
+  format: iceberg
+  zone: bronze/employment_indicators
+publish:
+  pmtiles: false
+  terria_group: "Indicators"
+quality:
+  checks: [schema_conformance, "no_nulls:commune_code,period", value_range]
+governance:
+  owner: platform-team
+  classification: public
+  source_class: modelled
+  license: CC0-1.0
+  citation: "GeoSpacialData POC synthetic employment indicators"
+  caveats: >
+    Synthetic data generated for demonstration purposes only. Values do
+    not reflect real employment statistics and must not be used for
+    analysis, reporting, or decision-making.

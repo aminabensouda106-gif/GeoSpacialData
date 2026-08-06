@@ -1,0 +1,19 @@
+[project]
+name = "connectors-base"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+  "pydantic>=2.7",
+  "pyyaml>=6.0",
+  "pyiceberg[pyarrow,s3fs]>=0.7",
+  "pyarrow>=16",
+  "duckdb>=1.0",
+  "soda-core-duckdb>=3.3",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["connectors_base*"]

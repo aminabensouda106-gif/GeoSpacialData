@@ -1,0 +1,11 @@
+pyproject.toml
+connectors_base/__init__.py
+connectors_base/catalog.py
+connectors_base/checksum.py
+connectors_base/manifest.py
+connectors_base/pipeline_run.py
+connectors_base.egg-info/PKG-INFO
+connectors_base.egg-info/SOURCES.txt
+connectors_base.egg-info/dependency_links.txt
+connectors_base.egg-info/requires.txt
+connectors_base.egg-info/top_level.txt

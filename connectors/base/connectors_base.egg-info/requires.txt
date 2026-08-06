@@ -1,0 +1,4 @@
+pydantic>=2.7
+pyyaml>=6.0
+pyiceberg[pyarrow,s3fs]>=0.7
+pyarrow>=16

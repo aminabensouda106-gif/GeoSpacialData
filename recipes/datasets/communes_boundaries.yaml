@@ -1,0 +1,33 @@
+id: communes_boundaries
+title: "Commune administrative boundaries"
+description: >
+  Synthetic commune boundary polygons for the POC, covering the same ten
+  communes as employment_indicators so the two datasets can be joined for
+  choropleths and zonal statistics.
+source:
+  type: file_source
+  endpoint: "sample-data/communes_boundaries.geojson"
+  auth: none
+extract:
+  mode: full
+target:
+  modality: vector
+  format: geoparquet
+  zone: bronze/communes_boundaries
+publish:
+  pmtiles: true
+  terria_group: "Boundaries"
+  region_provider: communes_boundaries
+quality:
+  checks: [schema_conformance, "no_nulls:commune_code,region_name", crs_declared]
+governance:
+  owner: platform-team
+  classification: public
+  source_class: modelled
+  license: CC0-1.0
+  citation: "GeoSpacialData POC synthetic commune boundaries"
+  caveats: >
+    Synthetic boundary geometries generated for demonstration purposes
+    only. Shapes are simplified rectangles and do not represent real
+    administrative boundaries; must not be used for any real spatial
+    analysis or decision-making.

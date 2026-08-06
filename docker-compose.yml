@@ -130,7 +130,8 @@ services:
 
   dagster:
     build:
-      context: ./orchestration
+      context: .
+      dockerfile: orchestration/Dockerfile
     container_name: geo-dagster
     environment:
       DAGSTER_PG_USERNAME: ${POSTGRES_USER:-platform}

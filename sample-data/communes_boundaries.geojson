@@ -1,0 +1,55 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "commune_code": "01-001", "commune_name": "Rabat", "region_name": "Rabat-Salé-Kénitra" },
+      "geometry": { "type": "Polygon", "coordinates": [[[-6.90, 33.95], [-6.80, 33.95], [-6.80, 34.05], [-6.90, 34.05], [-6.90, 33.95]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "commune_code": "01-002", "commune_name": "Salé", "region_name": "Rabat-Salé-Kénitra" },
+      "geometry": { "type": "Polygon", "coordinates": [[[-6.85, 34.02], [-6.75, 34.02], [-6.75, 34.10], [-6.85, 34.10], [-6.85, 34.02]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "commune_code": "01-003", "commune_name": "Témara", "region_name": "Rabat-Salé-Kénitra" },
+      "geometry": { "type": "Polygon", "coordinates": [[[-6.95, 33.90], [-6.85, 33.90], [-6.85, 33.98], [-6.95, 33.98], [-6.95, 33.90]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "commune_code": "02-001", "commune_name": "Casablanca", "region_name": "Casablanca-Settat" },
+      "geometry": { "type": "Polygon", "coordinates": [[[-7.70, 33.50], [-7.55, 33.50], [-7.55, 33.62], [-7.70, 33.62], [-7.70, 33.50]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "commune_code": "02-002", "commune_name": "Mohammedia", "region_name": "Casablanca-Settat" },
+      "geometry": { "type": "Polygon", "coordinates": [[[-7.42, 33.65], [-7.35, 33.65], [-7.35, 33.72], [-7.42, 33.72], [-7.42, 33.65]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "commune_code": "03-001", "commune_name": "Fès", "region_name": "Fès-Meknès" },
+      "geometry": { "type": "Polygon", "coordinates": [[[-5.05, 34.00], [-4.92, 34.00], [-4.92, 34.10], [-5.05, 34.10], [-5.05, 34.00]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "commune_code": "03-002", "commune_name": "Meknès", "region_name": "Fès-Meknès" },
+      "geometry": { "type": "Polygon", "coordinates": [[[-5.60, 33.85], [-5.50, 33.85], [-5.50, 33.93], [-5.60, 33.93], [-5.60, 33.85]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "commune_code": "04-001", "commune_name": "Marrakech", "region_name": "Marrakech-Safi" },
+      "geometry": { "type": "Polygon", "coordinates": [[[-8.05, 31.55], [-7.90, 31.55], [-7.90, 31.68], [-8.05, 31.68], [-8.05, 31.55]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "commune_code": "05-001", "commune_name": "Tanger", "region_name": "Tanger-Tétouan-Al Hoceïma" },
+      "geometry": { "type": "Polygon", "coordinates": [[[-5.85, 35.72], [-5.75, 35.72], [-5.75, 35.80], [-5.85, 35.80], [-5.85, 35.72]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "commune_code": "06-001", "commune_name": "Agadir", "region_name": "Souss-Massa" },
+      "geometry": { "type": "Polygon", "coordinates": [[[-9.60, 30.38], [-9.50, 30.38], [-9.50, 30.46], [-9.60, 30.46], [-9.60, 30.38]]] }
+    }
+  ]
+}
