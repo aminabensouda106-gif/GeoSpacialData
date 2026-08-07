@@ -83,7 +83,7 @@ def search_datasets(query: str) -> list[dict[str, Any]]:
     q = query.lower()
     results = []
     for ds in get_dataset_registry():
-        text = f"{ds['title']} {ds['description']} {ds.get('modality','')} {ds.get('source_type','')}".lower()
+        text = f"{ds['title']} {ds['description']} {ds.get('modality','')} {ds.get('source_type','')} {ds.get('caveats','')}".lower()
         if q in text:
             results.append(ds)
     return results
