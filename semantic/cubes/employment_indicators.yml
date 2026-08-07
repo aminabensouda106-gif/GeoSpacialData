@@ -1,0 +1,58 @@
+cubes:
+  - name: employment_indicators
+    title: Employment Indicators by Commune
+    description: >-
+      Monthly employment counts and rates by commune. Synthetic data
+      generated for the POC — values do not reflect real employment
+      statistics.
+    sql: >
+      SELECT * FROM read_parquet('s3://warehouse/bronze/employment_indicators/data/*.parquet')
+
+    dimensions:
+      - name: commune_code
+        title: Commune Code
+        description: Unique identifier for the commune administrative unit
+        sql: commune_code
+        type: string
+        primary_key: true
+        meta:
+          geo_join: communes_boundaries
+
+      - name: commune_name
+        title: Commune Name
+        description: Human-readable name of the commune
+        sql: commune_name
+        type: string
+
+      - name: period
+        title: Period
+        description: Calendar month of the observation
+        sql: period
+        type: time
+
+    measures:
+      - name: employment_count
+        title: Employment Count
+        description: Total number of employed people in the commune for the period
+        sql: employment_count
+        type: sum
+        meta:
+          caveat: >-
+            Synthetic data — not an official statistic. Do not use for
+            policy or investment decisions.
+
+      - name: employment_rate
+        title: Employment Rate
+        description: Ratio of employed to working-age population (0 to 1)
+        sql: employment_rate
+        type: avg
+        meta:
+          caveat: >-
+            Synthetic data — not an official statistic. Do not use for
+            policy or investment decisions.
+
+      - name: observation_count
+        title: Number of Observations
+        description: Count of commune-period records
+        sql: "1"
+        type: count

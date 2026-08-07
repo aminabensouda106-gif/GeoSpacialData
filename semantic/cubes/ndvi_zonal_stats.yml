@@ -1,0 +1,68 @@
+cubes:
+  - name: ndvi_zonal_stats
+    title: NDVI Zonal Statistics
+    description: >-
+      Mean NDVI per commune per monthly period, computed from
+      cloud-masked Sentinel-2 composites (90th percentile) via zonal
+      statistics over commune boundary polygons.
+    sql: >
+      SELECT * FROM read_parquet('s3://warehouse/gold/ndvi_zonal_stats/data/*.parquet')
+
+    dimensions:
+      - name: period
+        title: Period
+        description: Monthly period of the NDVI composite (YYYY-MM format)
+        sql: period
+        type: string
+
+      - name: commune_code
+        title: Commune Code
+        description: Commune identifier, joinable with employment_indicators
+        sql: commune_code
+        type: string
+        primary_key: true
+        meta:
+          geo_join: communes_boundaries
+
+    measures:
+      - name: mean_ndvi
+        title: Mean NDVI
+        description: Average NDVI value across all pixels within the commune polygon
+        sql: mean_ndvi
+        type: avg
+        meta:
+          caveat: >-
+            Computed from synthetic fixture scenes, not real Sentinel-2
+            imagery. Values do not reflect real vegetation conditions.
+
+      - name: max_ndvi
+        title: Maximum NDVI
+        description: Highest mean NDVI observed across communes in the selection
+        sql: mean_ndvi
+        type: max
+        meta:
+          caveat: >-
+            Computed from synthetic fixture scenes, not real Sentinel-2
+            imagery. Values do not reflect real vegetation conditions.
+
+      - name: min_ndvi
+        title: Minimum NDVI
+        description: Lowest mean NDVI observed across communes in the selection
+        sql: mean_ndvi
+        type: min
+        meta:
+          caveat: >-
+            Computed from synthetic fixture scenes, not real Sentinel-2
+            imagery. Values do not reflect real vegetation conditions.
+
+      - name: total_pixels
+        title: Total Pixel Count
+        description: Sum of valid pixels used to compute the NDVI mean
+        sql: pixel_count
+        type: sum
+
+      - name: observation_count
+        title: Number of Observations
+        description: Count of commune-period records
+        sql: "1"
+        type: count

@@ -1,0 +1,66 @@
+{
+  "realm": "geodata",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": false,
+  "accessTokenLifespan": 3600,
+  "clients": [
+    {
+      "clientId": "platform-bff",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "bff-dev-secret",
+      "redirectUris": ["http://localhost:8000/*", "http://localhost:8080/*"],
+      "webOrigins": ["http://localhost:8000", "http://localhost:8080"],
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:8080/*"
+      }
+    },
+    {
+      "clientId": "platform-portal",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "redirectUris": ["http://localhost:8080/*"],
+      "webOrigins": ["http://localhost:8080"],
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "demo",
+      "email": "demo@geodata.local",
+      "firstName": "Demo",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "demo",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["default-roles-geodata"]
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "default-roles-geodata",
+        "composite": false
+      }
+    ]
+  }
+}
