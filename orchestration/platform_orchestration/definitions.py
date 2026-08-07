@@ -5,6 +5,8 @@ from platform_orchestration.assets import (
     communes_boundaries_pmtiles,
     employment_indicators,
     hello,
+    ndvi_composite,
+    ndvi_zonal_stats,
 )
 from platform_orchestration.assets.quality_checks import (
     communes_boundaries_quality,
@@ -12,7 +14,14 @@ from platform_orchestration.assets.quality_checks import (
 )
 
 all_assets = load_assets_from_modules(
-    [hello, employment_indicators, communes_boundaries, communes_boundaries_pmtiles]
+    [
+        hello,
+        employment_indicators,
+        communes_boundaries,
+        communes_boundaries_pmtiles,
+        ndvi_composite,
+        ndvi_zonal_stats,
+    ]
 )
 
 defs = Definitions(

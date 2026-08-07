@@ -141,6 +141,7 @@ services:
       SEAWEEDFS_ENDPOINT: http://seaweedfs:8333
       SEAWEEDFS_ACCESS_KEY: ${SEAWEEDFS_ACCESS_KEY:-platform}
       SEAWEEDFS_SECRET_KEY: ${SEAWEEDFS_SECRET_KEY:-platform-dev-secret-please-rotate}
+      STAC_API_URL: http://stac-api:8080
     ports:
       - "3000:3000"
     depends_on:
@@ -148,6 +149,84 @@ services:
         condition: service_healthy
       lakekeeper:
         condition: service_healthy
+    restart: unless-stopped
+    networks: [platform]
+
+  # --- M4: raster catalog + dynamic tiling -----------------------------------
+
+  # ghcr.io/stac-utils/pgstac is a full postgres server image with pgstac's
+  # migrations baked into its own initdb, not a standalone migration CLI —
+  # useless for bolting pgstac onto our already-running shared postgres.
+  # `pypgstac` is a plain PyPI package instead: install it and run its
+  # `migrate` command against our postgres directly.
+  pgstac-init:
+    image: python:3.12-slim
+    container_name: geo-pgstac-init
+    command: ["sh", "-c", "pip install --no-cache-dir 'pypgstac[psycopg]==0.9.5' && pypgstac migrate"]
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${POSTGRES_USER:-platform}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-platform-dev-secret-please-rotate}
+      PGDATABASE: pgstac
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [platform]
+
+  stac-api:
+    image: ghcr.io/stac-utils/stac-fastapi-pgstac:3.0.0
+    container_name: geo-stac-api
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-platform}
+      POSTGRES_PASS: ${POSTGRES_PASSWORD:-platform-dev-secret-please-rotate}
+      POSTGRES_DBNAME: pgstac
+      POSTGRES_HOST_READER: postgres
+      POSTGRES_HOST_WRITER: postgres
+      POSTGRES_PORT: "5432"
+      APP_HOST: 0.0.0.0
+      APP_PORT: "8081"
+      ENVIRONMENT: local
+      RELOAD: "false"
+    ports:
+      - "8081:8080" # image's uvicorn ignores APP_PORT and always binds 8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+      pgstac-init:
+        condition: service_completed_successfully
+    healthcheck:
+      # no curl/wget in this image; it does have python3
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/collections')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+    networks: [platform]
+
+  titiler:
+    image: ghcr.io/developmentseed/titiler:latest
+    container_name: geo-titiler
+    environment:
+      AWS_S3_ENDPOINT: seaweedfs:8333
+      AWS_HTTPS: "NO"
+      AWS_VIRTUAL_HOSTING: "FALSE"
+      AWS_ACCESS_KEY_ID: ${SEAWEEDFS_ACCESS_KEY:-platform}
+      AWS_SECRET_ACCESS_KEY: ${SEAWEEDFS_SECRET_KEY:-platform-dev-secret-please-rotate}
+      GDAL_DISABLE_READDIR_ON_OPEN: "EMPTY_DIR"
+      CPL_VSIL_CURL_ALLOWED_EXTENSIONS: ".tif,.TIF,.tiff"
+    ports:
+      - "8082:80" # image's gunicorn listens on 80, not the 8000 its own docs assume
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
     restart: unless-stopped
     networks: [platform]
 

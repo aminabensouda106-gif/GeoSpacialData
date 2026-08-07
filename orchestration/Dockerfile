@@ -23,16 +23,24 @@ WORKDIR /opt/dagster/app
 # Build context is the repo root (see docker-compose.yml) so this image can
 # pip-install the connectors/ packages and reach sample-data/ and recipes/
 # at their normal repo-relative paths, both at build time and at runtime.
+# sample-data/ and recipes/ are copied *after* the pip install below —
+# they're data, not Python packages the install depends on, so editing a
+# fixture or a recipe YAML doesn't invalidate (and force a slow re-run of)
+# the pip install layer.
 COPY orchestration/pyproject.toml ./orchestration/pyproject.toml
 COPY orchestration/platform_orchestration ./orchestration/platform_orchestration
 COPY connectors ./connectors
+
+RUN pip install --no-cache-dir uv \
+    && uv pip install --system --no-cache \
+    -e ./connectors/base \
+    -e ./connectors/api_source \
+    -e ./connectors/file_source \
+    -e ./connectors/gee_source \
+    -e ./orchestration
+
 COPY sample-data ./sample-data
 COPY recipes ./recipes
-
-RUN pip install --no-cache-dir -e ./connectors/base \
-    && pip install --no-cache-dir -e ./connectors/api_source \
-    && pip install --no-cache-dir -e ./connectors/file_source \
-    && pip install --no-cache-dir -e ./orchestration
 
 COPY orchestration/dagster.yaml /opt/dagster/dagster_home/dagster.yaml
 ENV DAGSTER_HOME=/opt/dagster/dagster_home

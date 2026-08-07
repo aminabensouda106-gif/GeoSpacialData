@@ -39,10 +39,14 @@ def _expand(check: str, ctx: QualityContext) -> list[str]:
     if check == "schema_conformance":
         if ctx.expected_schema is None:
             raise ValueError("schema_conformance check requires ctx.expected_schema")
+        # "fail: when required column missing: [a, b]" on one line is ambiguous
+        # plain YAML (two colons) and gets rejected before SodaCL ever sees it;
+        # "when required column missing" must be its own nested key under fail.
         columns = ", ".join(f.name for f in ctx.expected_schema)
         return [
             "  - schema:",
-            f"      fail: when required column missing: [{columns}]",
+            "      fail:",
+            f"        when required column missing: [{columns}]",
         ]
 
     if check.startswith("no_nulls:"):

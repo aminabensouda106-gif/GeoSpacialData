@@ -1,0 +1,65 @@
+id: ndvi_composite
+title: "Monthly NDVI composite (90th percentile)"
+description: >
+  Monthly 90th-percentile NDVI composite over the ten-commune AOI, from
+  synthetic Sentinel-2-like fixture scenes (no Earth Engine credentials
+  required for the POC). Cloud-masked, then reduced per calendar month.
+source:
+  type: gee_source
+  endpoint: "sample-data/gee_fixtures"
+  auth: none
+extract:
+  mode: incremental
+  cursor: period
+  schedule: "0 3 * * *"
+target:
+  modality: raster
+  format: cog
+  zone: serving/ndvi_composite
+sources:
+  - collection: "COPERNICUS/S2_SR_HARMONIZED"
+    collection_version_pin: "fixture-v1"
+    bands: [B4, B8]
+domain:
+  aoi: "sample-data/communes_boundaries.geojson"
+  crs: "EPSG:4326"
+  scale_m: 500
+  grid_align_to: "COPERNICUS/S2_SR_HARMONIZED"
+temporal:
+  grain: month
+  reduction:
+    type: percentile
+    window: period
+    p: 90
+steps:
+  - id: cloud_mask
+    op: s2_cloud_shadow_mask
+    params: {}
+  - id: ndvi
+    op: normalized_difference
+    params: {nir: B8, red: B4}
+  - id: composite
+    op: temporal_reduce
+    params: {reducer: percentile, p: 90}
+refresh:
+  cadence: "0 3 * * *"
+  incremental_strategy: append_period
+  finality_lag_days: 30
+  revision_policy: reprocess_period
+  source_version_change: halt_and_notify
+publish:
+  pmtiles: false
+  stac_collection: ndvi_composite
+  terria_group: "Earth observation"
+quality:
+  checks: [schema_conformance, value_range]
+governance:
+  owner: platform-team
+  classification: public
+  source_class: modelled
+  license: CC0-1.0
+  citation: "GeoSpacialData POC synthetic NDVI composite (fixture mode)"
+  caveats: >
+    Computed from synthetic fixture scenes, not real Sentinel-2 imagery —
+    provenance.mode is "fixture". Values do not reflect real vegetation
+    conditions and must not be used for any real analysis.

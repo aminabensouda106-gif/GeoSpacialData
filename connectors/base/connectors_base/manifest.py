@@ -88,6 +88,23 @@ def _dotted(path: tuple[str, ...]) -> str:
     return ".".join(path)
 
 
+def check_trust_critical_fields(raw: dict, path: str | Path) -> None:
+    """Raise `ManifestError` if any of the trust-critical fields is
+    missing/blank. Shared by `load_manifest` and the GEE recipe loader
+    (§8.2 recipes extend the same envelope, so the same fields apply)."""
+    missing = [
+        _dotted(field_path)
+        for field_path in _TRUST_CRITICAL_PATHS
+        if not _dig(raw, field_path)
+    ]
+    if missing:
+        raise ManifestError(
+            f"{path}: missing required field(s): {', '.join(missing)} "
+            "(these back the Portal trust badges and catalog descriptions "
+            "and cannot be blank)"
+        )
+
+
 def load_manifest(path: str | Path) -> Manifest:
     """Load and validate a manifest YAML file. Raises `ManifestError` on
     any missing/invalid field, naming the exact field that failed."""
@@ -100,17 +117,7 @@ def load_manifest(path: str | Path) -> Manifest:
     if not isinstance(raw, dict):
         raise ManifestError(f"{path}: manifest must be a YAML mapping")
 
-    missing = [
-        _dotted(field_path)
-        for field_path in _TRUST_CRITICAL_PATHS
-        if not _dig(raw, field_path)
-    ]
-    if missing:
-        raise ManifestError(
-            f"{path}: missing required field(s): {', '.join(missing)} "
-            "(these back the Portal trust badges and catalog descriptions "
-            "and cannot be blank)"
-        )
+    check_trust_critical_fields(raw, path)
 
     try:
         return Manifest.model_validate(raw)
