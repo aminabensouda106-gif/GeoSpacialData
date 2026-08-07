@@ -1,0 +1,12 @@
+.git
+.venv
+.venv-test
+__pycache__
+*.pyc
+*.egg-info
+node_modules
+dist
+.pytest_cache
+notebooks
+documentation
+.claude

@@ -6,7 +6,7 @@ cubes:
       cloud-masked Sentinel-2 composites (90th percentile) via zonal
       statistics over commune boundary polygons.
     sql: >
-      SELECT * FROM read_parquet('s3://warehouse/gold/ndvi_zonal_stats/data/*.parquet')
+      SELECT * FROM read_parquet('s3://serving/cube/ndvi_zonal_stats.parquet')
 
     dimensions:
       - name: period

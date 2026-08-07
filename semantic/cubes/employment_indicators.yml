@@ -6,7 +6,7 @@ cubes:
       generated for the POC — values do not reflect real employment
       statistics.
     sql: >
-      SELECT * FROM read_parquet('s3://warehouse/bronze/employment_indicators/data/*.parquet')
+      SELECT * FROM read_parquet('s3://serving/cube/employment_indicators.parquet')
 
     dimensions:
       - name: commune_code

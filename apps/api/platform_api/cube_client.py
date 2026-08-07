@@ -15,14 +15,21 @@ def _cube_token() -> str:
 
 
 async def cube_load(query: dict[str, Any]) -> dict[str, Any]:
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            f"{cube_api_url()}/load",
-            json={"query": query},
-            headers={"Authorization": _cube_token()},
-        )
-        resp.raise_for_status()
-        return resp.json()
+    import asyncio
+
+    async with httpx.AsyncClient(timeout=60) as client:
+        for _ in range(30):
+            resp = await client.post(
+                f"{cube_api_url()}/load",
+                json={"query": query},
+                headers={"Authorization": _cube_token()},
+            )
+            resp.raise_for_status()
+            body = resp.json()
+            if body.get("error") != "Continue wait":
+                return body
+            await asyncio.sleep(1)
+        return body
 
 
 async def cube_meta() -> dict[str, Any]:
