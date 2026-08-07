@@ -1,0 +1,56 @@
+{
+  "catalog": [
+    {
+      "type": "group",
+      "id": "boundaries",
+      "name": "Boundaries",
+      "description": "Administrative boundary layers",
+      "members": [
+        {
+          "type": "geojson",
+          "id": "communes_boundaries",
+          "name": "Commune administrative boundaries",
+          "description": "Synthetic commune boundary polygons for the POC, covering ten communes.",
+          "url": "proxy/http://seaweedfs:8333/serving/geojson/communes_boundaries.geojson",
+          "opacity": 0.6
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "id": "indicators",
+      "name": "Indicators",
+      "description": "Socio-economic indicator datasets",
+      "members": [
+        {
+          "type": "csv",
+          "id": "employment_indicators",
+          "name": "Employment indicators by commune",
+          "description": "Synthetic monthly employment counts and rates by commune.",
+          "url": "proxy/http://seaweedfs:8333/serving/csv/employment_indicators.csv"
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "id": "earth_observation",
+      "name": "Earth Observation",
+      "description": "Satellite-derived products",
+      "members": [
+        {
+          "type": "geojson",
+          "id": "ndvi_zonal_stats",
+          "name": "NDVI zonal statistics by commune",
+          "description": "Mean/min/max NDVI values per commune per month (gold table).",
+          "url": "proxy/http://seaweedfs:8333/serving/geojson/ndvi_zonal_stats.geojson"
+        }
+      ]
+    }
+  ],
+  "homeCamera": {
+    "west": -10,
+    "south": 27,
+    "east": 0,
+    "north": 36
+  }
+}

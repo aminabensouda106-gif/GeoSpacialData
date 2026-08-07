@@ -357,6 +357,7 @@ services:
       - ./infra/terria/serverconfig.json:/app/serverconfig.json:ro
       - ./infra/terria/config.json:/app/wwwroot/config.json:ro
       - ./infra/terria/regionMapping.json:/app/wwwroot/data/regionMapping.json:ro
+      - ./infra/terria/init:/app/wwwroot/init:ro
     depends_on:
       seaweedfs:
         condition: service_healthy

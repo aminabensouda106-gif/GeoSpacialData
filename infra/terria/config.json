@@ -1,6 +1,6 @@
 {
   "initializationUrls": [
-    "proxy/http://seaweedfs:8333/serving/terria/catalog.json"
+    "geodata"
   ],
   "parameters": {
     "appName": "GeoData Platform",
@@ -17,14 +17,6 @@
       "message": "All datasets are synthetic and generated for demonstration only.",
       "confirmationRequired": false
     },
-    "regionMappingDefinitionsUrl": "data/regionMapping.json",
-    "cesiumIonAccessToken": null,
-    "useCesiumIonTerrain": false,
-    "useCesiumIonBingImagery": false,
-    "map": "2d"
-  },
-  "baseMaps": {
-    "defaultBaseMapId": "basemap-natural-earth-II",
-    "previewBaseMapId": "basemap-natural-earth-II"
+    "regionMappingDefinitionsUrl": "data/regionMapping.json"
   }
 }
