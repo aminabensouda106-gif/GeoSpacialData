@@ -344,6 +344,27 @@ services:
     restart: unless-stopped
     networks: [platform]
 
+  # --- M7: TerriaMap -----------------------------------------------------------
+
+  terria:
+    build:
+      context: .
+      dockerfile: infra/terria/Dockerfile
+    container_name: geo-terria
+    ports:
+      - "3001:3001"
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3001',r=>{r.statusCode===200?process.exit(0):process.exit(1)}).on('error',()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    networks: [platform]
+
   jupyter:
     build:
       context: ./infra/jupyter

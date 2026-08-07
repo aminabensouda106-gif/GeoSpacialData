@@ -7,6 +7,7 @@ from platform_orchestration.assets import (
     hello,
     ndvi_composite,
     ndvi_zonal_stats,
+    terria_catalog,
 )
 from platform_orchestration.assets.quality_checks import (
     communes_boundaries_quality,
@@ -21,6 +22,7 @@ all_assets = load_assets_from_modules(
         communes_boundaries_pmtiles,
         ndvi_composite,
         ndvi_zonal_stats,
+        terria_catalog,
     ]
 )
 
