@@ -3,6 +3,7 @@
   "initPaths": ["init/catalog.json"],
   "proxyAllDomains": true,
   "allowProxyFor": ["seaweedfs", "stac-api", "titiler", "localhost"],
+  "blacklistedAddresses": [],
   "settings": {
     "trustProxy": true
   }

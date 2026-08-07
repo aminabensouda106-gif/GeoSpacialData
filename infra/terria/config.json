@@ -20,6 +20,11 @@
     "regionMappingDefinitionsUrl": "data/regionMapping.json",
     "cesiumIonAccessToken": null,
     "useCesiumIonTerrain": false,
-    "useCesiumIonBingImagery": false
+    "useCesiumIonBingImagery": false,
+    "map": "2d"
+  },
+  "baseMaps": {
+    "defaultBaseMapId": "basemap-natural-earth-II",
+    "previewBaseMapId": "basemap-natural-earth-II"
   }
 }

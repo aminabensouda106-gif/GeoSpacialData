@@ -7,8 +7,6 @@ s3://serving/terria/catalog.json so TerriaMap picks it up via its proxy.
 Also generates regionIds JSON files for region mapping (M7c).
 """
 
-from __future__ import annotations
-
 import json
 import os
 from pathlib import Path
@@ -141,7 +139,7 @@ def _build_vector_member(
     pmtiles_url = f"proxy/{SEAWEEDFS_ENDPOINT}/{SERVING_BUCKET}/{layer['pmtiles_path']}"
 
     return {
-        "type": "pmtiles",
+        "type": "mvt",
         "id": layer["layer_id"],
         "name": name,
         "description": desc,
