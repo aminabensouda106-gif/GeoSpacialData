@@ -2,6 +2,7 @@ import { Routes, Route, Link, useLocation } from "react-router-dom";
 import Discovery from "./pages/Discovery";
 import DatasetPage from "./pages/DatasetPage";
 import Workbench from "./pages/Workbench";
+import Dashboard from "./pages/Dashboard";
 
 function NavBar() {
   const { pathname } = useLocation();
@@ -31,6 +32,12 @@ function NavBar() {
       }}>
         Workbench
       </Link>
+      <Link to="/dashboard" style={{
+        fontWeight: pathname === "/dashboard" ? 600 : 400,
+        color: pathname === "/dashboard" ? "var(--color-primary)" : "var(--color-text-secondary)",
+      }}>
+        Dashboard
+      </Link>
     </nav>
   );
 }
@@ -44,6 +51,7 @@ export default function App() {
           <Route path="/" element={<Discovery />} />
           <Route path="/datasets/:id" element={<DatasetPage />} />
           <Route path="/workbench" element={<Workbench />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </main>
     </>

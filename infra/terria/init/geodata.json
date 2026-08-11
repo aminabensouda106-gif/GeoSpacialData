@@ -25,9 +25,10 @@
         {
           "type": "geojson",
           "id": "ndvi_zonal_stats",
-          "name": "NDVI zonal statistics by commune",
-          "description": "Mean/min/max NDVI values per commune per month (gold table).\n\n<a href=\"http://localhost:8080/dataset/ndvi_composite\" target=\"_blank\">View in Portal</a>",
-          "url": "proxy/http://seaweedfs:8333/serving/geojson/ndvi_zonal_stats.geojson"
+          "name": "NDVI — Statistiques zonales par commune",
+          "description": "Valeurs NDVI moyennes par commune et par mois (table gold).\n\n<a href=\"http://localhost:8080/datasets/ndvi_composite\" target=\"_blank\">View in Portal</a>",
+          "url": "proxy/http://seaweedfs:8333/serving/geojson/ndvi_zonal_stats.geojson",
+          "opacity": 0.7
         }
       ]
     },

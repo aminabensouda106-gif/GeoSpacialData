@@ -132,13 +132,19 @@ def _build_vector_member(
 def _build_raster_member(
     dataset_id: str, manifest: dict[str, Any], stac_collections: list[dict]
 ) -> dict[str, Any] | None:
+    zonal_id = f"{dataset_id.replace('_composite', '')}_zonal_stats"
+    try:
+        s3 = _s3()
+        s3.head_object(Bucket=SERVING_BUCKET, Key=f"geojson/{zonal_id}.geojson")
+    except Exception:
+        return None
     geojson_url = (
         f"proxy/{SEAWEEDFS_ENDPOINT}/{SERVING_BUCKET}"
-        f"/geojson/{dataset_id}.geojson"
+        f"/geojson/{zonal_id}.geojson"
     )
     return {
         "type": "geojson",
-        "id": dataset_id,
+        "id": zonal_id,
         "name": manifest.get("title", dataset_id),
         "description": _make_description(manifest),
         "url": geojson_url,
