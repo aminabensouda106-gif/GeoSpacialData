@@ -1,8 +1,8 @@
 """M7b — Generated TerriaMap catalog.
 
-Reads STAC API collections/items, published-layers registry, and manifest
-metadata to produce a Terria v8 init file (catalog.json).  Writes it to
-s3://serving/terria/catalog.json so TerriaMap picks it up via its proxy.
+Reads published-layers registry, STAC API, and recipe manifests to produce
+a Terria v8 init file (geodata.json).  Writes it to a shared volume that
+TerriaMap serves from /app/wwwroot/init/, and also to S3 as backup.
 
 Also generates regionIds JSON files for region mapping (M7c).
 """
@@ -19,8 +19,8 @@ from dagster import AssetExecutionContext, MaterializeResult, asset
 
 SERVING_BUCKET = "serving"
 STAC_API_URL = os.environ.get("STAC_API_URL", "http://stac-api:8080")
-TITILER_URL = os.environ.get("TITILER_URL", "http://titiler:80")
 SEAWEEDFS_ENDPOINT = os.environ.get("SEAWEEDFS_ENDPOINT", "http://seaweedfs:8333")
+TERRIA_INIT_DIR = os.environ.get("TERRIA_INIT_DIR", "/opt/dagster/app/terria-init")
 
 RECIPE_DIRS = [
     "recipes/datasets",
@@ -31,6 +31,7 @@ TERRIA_GROUPS = {
     "Boundaries": "Administrative boundary layers",
     "Indicators": "Socio-economic indicator datasets",
     "Earth Observation": "Satellite-derived products",
+    "Alternative Data": "External open-data layers (WMS/WMTS)",
 }
 
 GROUP_MAP = {
@@ -91,6 +92,7 @@ def _load_stac_collections() -> list[dict[str, Any]]:
 
 
 def _make_description(manifest: dict[str, Any]) -> str:
+    ds_id = manifest.get("id", "")
     parts = [manifest.get("description", "")]
     gov = manifest.get("governance", {})
     if gov.get("caveats"):
@@ -99,36 +101,12 @@ def _make_description(manifest: dict[str, Any]) -> str:
         parts.append(f"\n\n**License:** {gov['license']}")
     if gov.get("owner"):
         parts.append(f" | **Owner:** {gov['owner']}")
+    if ds_id:
+        parts.append(
+            f'\n\n<a href="http://localhost:8080/dataset/{ds_id}"'
+            f' target="_blank">View in Portal</a>'
+        )
     return "".join(parts).strip()
-
-
-def _build_raster_member(
-    dataset_id: str, manifest: dict[str, Any], stac_collections: list[dict]
-) -> dict[str, Any] | None:
-    collection = next(
-        (c for c in stac_collections if c["id"] == dataset_id),
-        None,
-    )
-    stac_coll = manifest.get("publish", {}).get("stac_collection", dataset_id)
-    collection = collection or next(
-        (c for c in stac_collections if c["id"] == stac_coll), None
-    )
-    if not collection:
-        return None
-
-    return {
-        "type": "ckan-item",
-        "id": dataset_id,
-        "name": manifest.get("title", dataset_id),
-        "description": _make_description(manifest),
-        "url": f"proxy/{STAC_API_URL}/collections/{collection['id']}/items",
-        "info": [
-            {
-                "name": "Data Governance",
-                "content": _make_description(manifest),
-            }
-        ],
-    }
 
 
 def _build_vector_member(
@@ -136,44 +114,54 @@ def _build_vector_member(
 ) -> dict[str, Any]:
     name = manifest.get("title", layer["layer_id"]) if manifest else layer["layer_id"]
     desc = _make_description(manifest) if manifest else ""
-    pmtiles_url = f"proxy/{SEAWEEDFS_ENDPOINT}/{SERVING_BUCKET}/{layer['pmtiles_path']}"
+    geojson_url = (
+        f"proxy/{SEAWEEDFS_ENDPOINT}/{SERVING_BUCKET}"
+        f"/geojson/{layer['layer_id']}.geojson"
+    )
 
     return {
-        "type": "mvt",
+        "type": "geojson",
         "id": layer["layer_id"],
         "name": name,
         "description": desc,
-        "url": pmtiles_url,
+        "url": geojson_url,
         "opacity": 0.6,
-        "rectangle": {
-            "west": layer["bbox_minx"],
-            "south": layer["bbox_miny"],
-            "east": layer["bbox_maxx"],
-            "north": layer["bbox_maxy"],
-        },
+    }
+
+
+def _build_raster_member(
+    dataset_id: str, manifest: dict[str, Any], stac_collections: list[dict]
+) -> dict[str, Any] | None:
+    geojson_url = (
+        f"proxy/{SEAWEEDFS_ENDPOINT}/{SERVING_BUCKET}"
+        f"/geojson/{dataset_id}.geojson"
+    )
+    return {
+        "type": "geojson",
+        "id": dataset_id,
+        "name": manifest.get("title", dataset_id),
+        "description": _make_description(manifest),
+        "url": geojson_url,
     }
 
 
 def _build_tabular_member(
     dataset_id: str, manifest: dict[str, Any]
 ) -> dict[str, Any]:
+    csv_url = (
+        f"proxy/{SEAWEEDFS_ENDPOINT}/{SERVING_BUCKET}"
+        f"/csv/{dataset_id}.csv"
+    )
     return {
-        "type": "group",
+        "type": "csv",
         "id": dataset_id,
         "name": manifest.get("title", dataset_id),
         "description": _make_description(manifest),
-        "members": [],
-        "info": [
-            {
-                "name": "Access",
-                "content": f"View in [Portal Workbench](http://localhost:8080/datasets/{dataset_id})",
-            }
-        ],
+        "url": csv_url,
     }
 
 
 def _generate_region_ids(context: AssetExecutionContext) -> None:
-    """Generate regionIds JSON files for TerriaMap region mapping."""
     try:
         from connectors_base.catalog import get_catalog
 
@@ -202,6 +190,118 @@ def _generate_region_ids(context: AssetExecutionContext) -> None:
         )
     except Exception as e:
         context.log.warning(f"Could not generate regionIds: {e}")
+
+
+def _external_layers() -> list[dict[str, Any]]:
+    """Free public WMS layers — real alternative data, no auth needed."""
+    gibs = "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi"
+    return [
+        {
+            "type": "wms",
+            "id": "modis_ndvi",
+            "name": "NDVI Végétation (MODIS Terra)",
+            "description": (
+                "Indice de végétation NDVI 8 jours — santé des cultures et "
+                "couvert végétal, résolution ~250 m."
+                '\n\n<b>Source:</b> NASA GIBS — '
+                '<a href="https://earthdata.nasa.gov" target="_blank">'
+                "earthdata.nasa.gov</a>"
+            ),
+            "url": gibs,
+            "layers": "MODIS_Terra_NDVI_8Day",
+            "opacity": 0.7,
+        },
+        {
+            "type": "wms",
+            "id": "worldcover_landuse",
+            "name": "Occupation du Sol (ESA WorldCover)",
+            "description": (
+                "Carte d'occupation du sol 2021 à 10 m — cultures, forêt, "
+                "urbain, eau, sols nus. Basée sur Sentinel-1 et Sentinel-2."
+                '\n\n<b>Source:</b> ESA via Terrascope — '
+                '<a href="https://esa-worldcover.org" target="_blank">'
+                "esa-worldcover.org</a>"
+            ),
+            "url": "https://services.terrascope.be/wms/v2",
+            "layers": "WORLDCOVER_2021_MAP",
+            "opacity": 0.6,
+        },
+        {
+            "type": "wms",
+            "id": "gpm_precipitation",
+            "name": "Précipitations (GPM NASA)",
+            "description": (
+                "Précipitations mensuelles cumulées — pluviométrie globale "
+                "issue du satellite GPM (Global Precipitation Measurement)."
+                '\n\n<b>Source:</b> NASA GIBS — '
+                '<a href="https://gpm.nasa.gov" target="_blank">'
+                "gpm.nasa.gov</a>"
+            ),
+            "url": gibs,
+            "layers": "GPM_3IMERGM",
+            "opacity": 0.6,
+        },
+        {
+            "type": "wms",
+            "id": "modis_lst",
+            "name": "Température de Surface (MODIS Terra)",
+            "description": (
+                "Température de surface terrestre diurne mensuelle — "
+                "stress thermique des cultures et îlots de chaleur."
+                '\n\n<b>Source:</b> NASA GIBS — '
+                '<a href="https://earthdata.nasa.gov" target="_blank">'
+                "earthdata.nasa.gov</a>"
+            ),
+            "url": gibs,
+            "layers": "MODIS_Terra_Land_Surface_Temp_Day_Monthly",
+            "opacity": 0.7,
+        },
+        {
+            "type": "wms",
+            "id": "smap_soil_moisture",
+            "name": "Humidité du Sol (SMAP)",
+            "description": (
+                "Humidité de la zone racinaire analysée — indicateur clé "
+                "pour l'irrigation et la détection de sécheresse."
+                '\n\n<b>Source:</b> NASA SMAP — '
+                '<a href="https://smap.jpl.nasa.gov" target="_blank">'
+                "smap.jpl.nasa.gov</a>"
+            ),
+            "url": gibs,
+            "layers": "SMAP_L4_Analyzed_Root_Zone_Moisture",
+            "opacity": 0.6,
+        },
+        {
+            "type": "wms",
+            "id": "modis_evapotranspiration",
+            "name": "Évapotranspiration (MODIS Terra)",
+            "description": (
+                "Évapotranspiration mensuelle — bilan hydrique des cultures, "
+                "besoins en eau et productivité végétale."
+                '\n\n<b>Source:</b> NASA GIBS — '
+                '<a href="https://earthdata.nasa.gov" target="_blank">'
+                "earthdata.nasa.gov</a>"
+            ),
+            "url": gibs,
+            "layers": "MODIS_Terra_Gross_Primary_Productivity_8Day",
+            "opacity": 0.6,
+        },
+        {
+            "type": "wms",
+            "id": "viirs_active_fires",
+            "name": "Feux Actifs (VIIRS)",
+            "description": (
+                "Anomalies thermiques détectées par VIIRS — feux de "
+                "végétation actifs et risque d'incendie."
+                '\n\n<b>Source:</b> NASA GIBS — '
+                '<a href="https://earthdata.nasa.gov" target="_blank">'
+                "earthdata.nasa.gov</a>"
+            ),
+            "url": gibs,
+            "layers": "VIIRS_SNPP_Thermal_Anomalies",
+            "opacity": 0.8,
+        },
+    ]
 
 
 @asset(key_prefix="serving", name="terria_catalog")
@@ -247,6 +347,8 @@ def terria_catalog(context: AssetExecutionContext) -> MaterializeResult:
                 _resolve_group(raw_group, default_group), []
             ).append(member)
 
+    groups["Alternative Data"] = _external_layers()
+
     catalog_members = []
     for group_name, group_desc in TERRIA_GROUPS.items():
         members = groups.get(group_name, [])
@@ -269,6 +371,7 @@ def terria_catalog(context: AssetExecutionContext) -> MaterializeResult:
             "east": 0,
             "north": 36,
         },
+        "viewerMode": "2d",
     }
 
     catalog_json = json.dumps(catalog, indent=2, ensure_ascii=False)
@@ -280,6 +383,12 @@ def terria_catalog(context: AssetExecutionContext) -> MaterializeResult:
         Body=catalog_json.encode("utf-8"),
         ContentType="application/json",
     )
+
+    init_dir = Path(TERRIA_INIT_DIR)
+    if init_dir.is_dir():
+        init_path = init_dir / "geodata.json"
+        init_path.write_text(catalog_json, encoding="utf-8")
+        context.log.info(f"Wrote init file to {init_path}")
 
     _generate_region_ids(context)
 

@@ -8,14 +8,14 @@ import pytest
 from connectors_base.manifest import ManifestError, load_manifest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-GOOD_MANIFEST = REPO_ROOT / "recipes" / "datasets" / "employment_indicators.yaml"
+GOOD_MANIFEST = REPO_ROOT / "recipes" / "datasets" / "communes_boundaries.yaml"
 
 
 def test_loads_valid_manifest():
     manifest = load_manifest(GOOD_MANIFEST)
-    assert manifest.id == "employment_indicators"
-    assert manifest.governance.owner == "platform-team"
-    assert manifest.source.type == "api_source"
+    assert manifest.id == "communes_boundaries"
+    assert manifest.governance.owner
+    assert manifest.source.type == "file_source"
 
 
 @pytest.mark.parametrize(

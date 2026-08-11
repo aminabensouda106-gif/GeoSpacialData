@@ -2,21 +2,13 @@ views:
   - name: commune_overview
     title: Commune Overview
     description: >-
-      Unified view joining employment indicators and NDVI statistics by
-      commune code, for cross-domain analysis on the workbench.
+      NDVI zonal statistics by commune code, for cross-domain analysis
+      on the workbench.
 
     cubes:
-      - join_path: employment_indicators
+      - join_path: ndvi_zonal_stats
         includes:
           - commune_code
-          - commune_name
           - period
-          - employment_count
-          - employment_rate
-          - observation_count
-
-      - join_path: ndvi_zonal_stats
-        prefix: true
-        includes:
           - mean_ndvi
           - total_pixels

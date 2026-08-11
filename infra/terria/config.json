@@ -17,6 +17,9 @@
       "message": "All datasets are synthetic and generated for demonstration only.",
       "confirmationRequired": false
     },
-    "regionMappingDefinitionsUrl": "data/regionMapping.json"
+    "regionMappingDefinitionsUrl": "data/regionMapping.json",
+    "map": "2d",
+    "useCesiumIonTerrain": false,
+    "useCesiumIonBingImagery": false
   }
 }

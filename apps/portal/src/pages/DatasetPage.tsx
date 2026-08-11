@@ -157,6 +157,23 @@ export default function DatasetPage() {
               </button>
             </Link>
           )}
+          <a
+            href={`http://localhost:3001/#start=${encodeURIComponent(JSON.stringify({ initSources: [{ workbench: [ds.id] }] }))}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <button style={{
+              padding: "8px 16px",
+              borderRadius: "var(--radius)",
+              background: "#059669",
+              color: "#fff",
+              border: "none",
+              fontSize: 14,
+              fontWeight: 500,
+            }}>
+              Open in Map
+            </button>
+          </a>
         </div>
       </div>
     </div>

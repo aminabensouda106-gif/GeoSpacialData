@@ -1,9 +1,8 @@
 id: communes_boundaries
 title: "Commune administrative boundaries"
 description: >
-  Synthetic commune boundary polygons for the POC, covering the same ten
-  communes as employment_indicators so the two datasets can be joined for
-  choropleths and zonal statistics.
+  Synthetic commune boundary polygons for the POC, covering ten
+  communes used for zonal statistics (NDVI) and choropleths.
 source:
   type: file_source
   endpoint: "sample-data/communes_boundaries.geojson"

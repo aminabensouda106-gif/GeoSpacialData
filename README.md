@@ -33,11 +33,11 @@ for the full operational picture and `docs/DEMO_SCRIPT.md` for the guided walkth
 - [x] M1 — Object storage (SeaweedFS) + Postgres compose skeleton
 - [x] M2 — Iceberg catalog (Lakekeeper) + Dagster + Jupyter
 - [x] M3 — Ingestion framework, tabular + boundary datasets
-- [ ] M4 — Raster, STAC, GEE recipe pipeline
-- [ ] M5 — Semantic layer (Cube) + BFF
-- [ ] M6 — Portal front end
-- [ ] M7 — TerriaMap (generated catalog + region mapping)
-- [ ] M8 — Cross-links, demo script, polish
+- [x] M4 — Raster, STAC, GEE recipe pipeline
+- [x] M5 — Semantic layer (Cube) + BFF
+- [x] M6 — Portal front end
+- [x] M7 — TerriaMap (generated catalog + region mapping)
+- [x] M8 — Cross-links, demo script, polish
 
 ## Quick start
 

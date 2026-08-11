@@ -1,4 +1,4 @@
-.PHONY: bootstrap up down logs reset test
+.PHONY: bootstrap up down logs reset seed test
 
 # Each target wraps a POSIX shell script in scripts/, so the same logic runs
 # whether invoked via `make` (Linux/CI/WSL) or `bash scripts/<name>.sh`
@@ -18,6 +18,9 @@ logs:
 
 reset:
 	bash scripts/reset.sh
+
+seed:
+	bash scripts/seed.sh
 
 test:
 	bash scripts/test.sh

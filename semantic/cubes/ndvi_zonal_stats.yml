@@ -17,7 +17,7 @@ cubes:
 
       - name: commune_code
         title: Commune Code
-        description: Commune identifier, joinable with employment_indicators
+        description: Commune identifier, joinable with communes_boundaries
         sql: commune_code
         type: string
         primary_key: true

@@ -30,7 +30,7 @@ from connectors_base.repo_paths import repo_root
 from shapely.geometry import mapping, shape
 from shapely.ops import unary_union
 
-from connectors_gee_source import contributing_assets, fixtures, stac
+from connectors_gee_source import contributing_assets, stac
 from connectors_gee_source.cog import get_s3_client, upload_cog, write_cog
 from connectors_gee_source.interpreter import run_period
 from connectors_gee_source.recipe import GeeRecipe, load_recipe
@@ -74,10 +74,48 @@ def _s3_upload_json(client, key: str, payload: dict | list) -> None:
     client.upload_fileobj(io.BytesIO(body), RAW_BUCKET, key)
 
 
+def _use_real_gee() -> bool:
+    try:
+        from connectors_gee_source.gee_client import is_available
+        return is_available()
+    except ImportError:
+        return False
+
+
+def _load_scene_catalog(recipe: GeeRecipe, geometry: dict, bbox: tuple) -> dict[str, list[str]]:
+    if _use_real_gee():
+        from connectors_gee_source.gee_client import list_scene_ids
+        from datetime import date
+        today = date.today()
+        catalog: dict[str, list[str]] = {}
+        year, month = today.year, today.month
+        for offset in range(6):
+            m = month - offset
+            y = year
+            while m <= 0:
+                m += 12
+                y -= 1
+            period = f"{y}-{m:02d}"
+            from calendar import monthrange
+            last_day = monthrange(y, m)[1]
+            start = f"{y}-{m:02d}-01"
+            end = f"{y}-{m:02d}-{last_day:02d}"
+            try:
+                ids = list_scene_ids(geometry, start, end)
+                if ids:
+                    catalog[period] = ids
+            except Exception:
+                continue
+        return catalog
+    else:
+        from connectors_gee_source import fixtures
+        return fixtures.load_scene_catalog()
+
+
 def run(recipe_path: str | Path) -> list[PipelineRunRecorder]:
     recipe = load_recipe(recipe_path)
-    catalog = fixtures.load_scene_catalog()
     geometry, bbox = _aoi_geometry_and_bbox(recipe)
+    catalog = _load_scene_catalog(recipe, geometry, bbox)
 
     collection_id = recipe.publish.stac_collection or recipe.id
     stac.ensure_collection(
@@ -137,13 +175,14 @@ def _process_period(
         run_record.record_row_count(int(composite.size))
 
         # --- output 3: catalog registration (STAC item) ----------------------
+        mode = "real GEE" if _use_real_gee() else "fixture"
         provenance_sentence = (
             f"{recipe.temporal.reduction.type}-{recipe.temporal.reduction.p} NDVI from "
             f"{len(asset_ids)} cloud-masked scenes, computed under recipe {recipe.id} "
-            f"(fixture mode)"
+            f"({mode})"
             if recipe.temporal.reduction.type == "percentile"
             else f"{recipe.temporal.reduction.type} NDVI from {len(asset_ids)} scenes "
-            f"(fixture mode)"
+            f"({mode})"
         )
         item_id = f"{recipe.id}_{period}"
         stac.publish_item(

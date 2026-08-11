@@ -12,19 +12,6 @@ from connectors_base.pipeline_runs_query import latest_quality_result
 from dagster import AssetCheckResult, MetadataValue, asset_check
 
 from platform_orchestration.assets.communes_boundaries import communes_boundaries
-from platform_orchestration.assets.employment_indicators import employment_indicators
-
-
-@asset_check(asset=employment_indicators, name="soda_quality")
-def employment_indicators_quality() -> AssetCheckResult:
-    result = latest_quality_result("employment_indicators")
-    if result is None:
-        return AssetCheckResult(passed=False, description="No pipeline run has recorded a quality report yet")
-    passed, report = result
-    return AssetCheckResult(
-        passed=passed,
-        metadata={"report": MetadataValue.json(report)},
-    )
 
 
 @asset_check(asset=communes_boundaries, name="soda_quality")

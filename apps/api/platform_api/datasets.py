@@ -154,8 +154,9 @@ def terria_link(dataset_id: str) -> str | None:
     ds = get_dataset(dataset_id)
     if ds is None:
         return None
-    if ds.get("stac_collection"):
-        return f"http://localhost:3001/#clean&start=%7B%22catalog%22%3A%5B%22{dataset_id}%22%5D%7D"
-    if ds.get("has_pmtiles"):
-        return f"http://localhost:3001/#clean&start=%7B%22catalog%22%3A%5B%22{dataset_id}%22%5D%7D"
-    return None
+    import json
+    import urllib.parse
+
+    share = {"initSources": [{"workbench": [dataset_id]}]}
+    encoded = urllib.parse.quote(json.dumps(share, separators=(",", ":")))
+    return f"http://localhost:3001/#start={encoded}"

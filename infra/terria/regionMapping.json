@@ -2,11 +2,8 @@
   "regionWmsMap": {
     "commune_code": {
       "layerName": "communes_boundaries",
-      "server": "proxy/http://seaweedfs:8333/serving/pmtiles/communes_boundaries.pmtiles",
-      "serverType": "MVT",
-      "serverMaxNativeZoom": 12,
-      "serverMinZoom": 0,
-      "serverMaxZoom": 14,
+      "server": "proxy/http://seaweedfs:8333/serving/geojson/communes_boundaries.geojson",
+      "serverType": "GeoJSON",
       "regionProp": "commune_code",
       "aliases": ["commune_code", "code_commune", "commune"],
       "description": "Communes (by code)",
@@ -16,11 +13,8 @@
     },
     "commune_name": {
       "layerName": "communes_boundaries",
-      "server": "proxy/http://seaweedfs:8333/serving/pmtiles/communes_boundaries.pmtiles",
-      "serverType": "MVT",
-      "serverMaxNativeZoom": 12,
-      "serverMinZoom": 0,
-      "serverMaxZoom": 14,
+      "server": "proxy/http://seaweedfs:8333/serving/geojson/communes_boundaries.geojson",
+      "serverType": "GeoJSON",
       "regionProp": "commune_name",
       "aliases": ["commune_name", "nom_commune"],
       "description": "Communes (by name)",

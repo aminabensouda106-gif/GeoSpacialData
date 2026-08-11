@@ -10,24 +10,9 @@
           "type": "geojson",
           "id": "communes_boundaries",
           "name": "Commune administrative boundaries",
-          "description": "Synthetic commune boundary polygons for the POC, covering ten communes.",
+          "description": "Synthetic commune boundary polygons for the POC, covering ten communes.\n\n<a href=\"http://localhost:8080/dataset/communes_boundaries\" target=\"_blank\">View in Portal</a>",
           "url": "proxy/http://seaweedfs:8333/serving/geojson/communes_boundaries.geojson",
           "opacity": 0.6
-        }
-      ]
-    },
-    {
-      "type": "group",
-      "id": "indicators",
-      "name": "Indicators",
-      "description": "Socio-economic indicator datasets",
-      "members": [
-        {
-          "type": "csv",
-          "id": "employment_indicators",
-          "name": "Employment indicators by commune",
-          "description": "Synthetic monthly employment counts and rates by commune.",
-          "url": "proxy/http://seaweedfs:8333/serving/csv/employment_indicators.csv"
         }
       ]
     },
@@ -41,8 +26,79 @@
           "type": "geojson",
           "id": "ndvi_zonal_stats",
           "name": "NDVI zonal statistics by commune",
-          "description": "Mean/min/max NDVI values per commune per month (gold table).",
+          "description": "Mean/min/max NDVI values per commune per month (gold table).\n\n<a href=\"http://localhost:8080/dataset/ndvi_composite\" target=\"_blank\">View in Portal</a>",
           "url": "proxy/http://seaweedfs:8333/serving/geojson/ndvi_zonal_stats.geojson"
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "id": "alternative_data",
+      "name": "Alternative Data",
+      "description": "External open-data layers (WMS/WMTS)",
+      "members": [
+        {
+          "type": "wms",
+          "id": "modis_ndvi",
+          "name": "NDVI Végétation (MODIS Terra)",
+          "description": "Indice de végétation NDVI 8 jours — santé des cultures et couvert végétal, résolution ~250 m.\n\n<b>Source:</b> NASA GIBS",
+          "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi",
+          "layers": "MODIS_Terra_NDVI_8Day",
+          "opacity": 0.7
+        },
+        {
+          "type": "wms",
+          "id": "worldcover_landuse",
+          "name": "Occupation du Sol (ESA WorldCover)",
+          "description": "Carte d'occupation du sol 2021 à 10 m — cultures, forêt, urbain, eau, sols nus.\n\n<b>Source:</b> ESA via Terrascope",
+          "url": "https://services.terrascope.be/wms/v2",
+          "layers": "WORLDCOVER_2021_MAP",
+          "opacity": 0.6
+        },
+        {
+          "type": "wms",
+          "id": "gpm_precipitation",
+          "name": "Précipitations (GPM NASA)",
+          "description": "Précipitations mensuelles cumulées — pluviométrie globale GPM.\n\n<b>Source:</b> NASA GIBS",
+          "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi",
+          "layers": "GPM_3IMERGM",
+          "opacity": 0.6
+        },
+        {
+          "type": "wms",
+          "id": "modis_lst",
+          "name": "Température de Surface (MODIS Terra)",
+          "description": "Température de surface terrestre diurne mensuelle — stress thermique.\n\n<b>Source:</b> NASA GIBS",
+          "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi",
+          "layers": "MODIS_Terra_Land_Surface_Temp_Day_Monthly",
+          "opacity": 0.7
+        },
+        {
+          "type": "wms",
+          "id": "smap_soil_moisture",
+          "name": "Humidité du Sol (SMAP)",
+          "description": "Humidité de la zone racinaire — irrigation et détection de sécheresse.\n\n<b>Source:</b> NASA SMAP",
+          "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi",
+          "layers": "SMAP_L4_Analyzed_Root_Zone_Moisture",
+          "opacity": 0.6
+        },
+        {
+          "type": "wms",
+          "id": "modis_evapotranspiration",
+          "name": "Évapotranspiration (MODIS Terra)",
+          "description": "Productivité primaire brute 8 jours — bilan hydrique et productivité végétale.\n\n<b>Source:</b> NASA GIBS",
+          "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi",
+          "layers": "MODIS_Terra_Gross_Primary_Productivity_8Day",
+          "opacity": 0.6
+        },
+        {
+          "type": "wms",
+          "id": "viirs_active_fires",
+          "name": "Feux Actifs (VIIRS)",
+          "description": "Anomalies thermiques VIIRS — feux de végétation et risque d'incendie.\n\n<b>Source:</b> NASA GIBS",
+          "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi",
+          "layers": "VIIRS_SNPP_Thermal_Anomalies",
+          "opacity": 0.8
         }
       ]
     }
@@ -52,5 +108,6 @@
     "south": 27,
     "east": 0,
     "north": 36
-  }
+  },
+  "viewerMode": "2d"
 }

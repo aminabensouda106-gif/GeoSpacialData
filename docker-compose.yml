@@ -142,8 +142,15 @@ services:
       SEAWEEDFS_ACCESS_KEY: ${SEAWEEDFS_ACCESS_KEY:-platform}
       SEAWEEDFS_SECRET_KEY: ${SEAWEEDFS_SECRET_KEY:-platform-dev-secret-please-rotate}
       STAC_API_URL: http://stac-api:8080
+      TERRIA_INIT_DIR: /opt/dagster/app/terria-init
+      GEE_SERVICE_ACCOUNT_KEY: /secrets/gee-sa-key.json
+      EE_PROJECT_ID: ${EE_PROJECT_ID:-}
     ports:
       - "3000:3000"
+    volumes:
+      - terria_init:/opt/dagster/app/terria-init
+      - ${GEE_KEY_FILE:-/dev/null}:/secrets/gee-sa-key.json:ro
+      - ${EE_CONFIG_DIR:-/dev/null}:/root/.config/earthengine:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -273,7 +280,6 @@ services:
       - "4000:4000"
     volumes:
       - ./semantic/cube.js:/cube/conf/cube.js:ro
-      - ./semantic/cubes/employment_indicators.yml:/cube/conf/model/employment_indicators.yml:ro
       - ./semantic/cubes/ndvi_zonal_stats.yml:/cube/conf/model/ndvi_zonal_stats.yml:ro
       - ./semantic/views/commune_overview.yml:/cube/conf/model/commune_overview.yml:ro
     depends_on:
@@ -346,6 +352,15 @@ services:
 
   # --- M7: TerriaMap -----------------------------------------------------------
 
+  terria-init:
+    image: busybox:1.36
+    container_name: geo-terria-init
+    command: ["sh", "-c", "cp -n /seed/*.json /init/ 2>/dev/null; ls /init/"]
+    volumes:
+      - ./infra/terria/init:/seed:ro
+      - terria_init:/init
+    networks: [platform]
+
   terria:
     build:
       context: .
@@ -357,10 +372,12 @@ services:
       - ./infra/terria/serverconfig.json:/app/serverconfig.json:ro
       - ./infra/terria/config.json:/app/wwwroot/config.json:ro
       - ./infra/terria/regionMapping.json:/app/wwwroot/data/regionMapping.json:ro
-      - ./infra/terria/init:/app/wwwroot/init:ro
+      - terria_init:/app/wwwroot/init
     depends_on:
       seaweedfs:
         condition: service_healthy
+      terria-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3001',r=>{r.statusCode===200?process.exit(0):process.exit(1)}).on('error',()=>process.exit(1))\""]
       interval: 15s
@@ -393,6 +410,7 @@ services:
 volumes:
   seaweedfs_data:
   postgres_data:
+  terria_init:
 
 networks:
   platform:
