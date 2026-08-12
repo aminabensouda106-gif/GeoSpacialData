@@ -122,7 +122,9 @@ export default function Discovery() {
   }
 
   const filtered = datasets.filter((ds) => {
-    if (sourceFilter && ds.source_type !== sourceFilter) return false;
+    // ds.source_type holds the full connector-type string ("file_source",
+    // "gee_source", "api_source"); the filter chips use the short form.
+    if (sourceFilter && ds.source_type !== `${sourceFilter}_source`) return false;
     if (modalityFilter && ds.modality !== modalityFilter) return false;
     if (nearMe && nearbyIds && !nearbyIds.has(ds.id)) return false;
     return true;
