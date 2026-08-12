@@ -5,6 +5,7 @@ import { getCubeMeta, cubeExport, type CubeMember } from "../api";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Protocol } from "pmtiles";
+import { onFlyTo } from "../locationBus";
 
 type ViewMode = "table" | "chart" | "map";
 
@@ -441,6 +442,13 @@ function ChoroplethMap({ rows, geoJoinDim, measure }: {
     });
 
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
+    map.addControl(
+      new maplibregl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+      }),
+      "top-right"
+    );
 
     map.on("load", () => {
       map.addSource("communes", {
@@ -493,7 +501,12 @@ function ChoroplethMap({ rows, geoJoinDim, measure }: {
 
     mapRef.current = map;
 
+    const unsubscribe = onFlyTo(({ lat, lon }) => {
+      map.flyTo({ center: [lon, lat], zoom: 10 });
+    });
+
     return () => {
+      unsubscribe();
       map.remove();
       mapRef.current = null;
       maplibregl.removeProtocol("pmtiles");

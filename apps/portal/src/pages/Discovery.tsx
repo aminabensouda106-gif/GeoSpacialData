@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { searchDatasets, getAllDatasets, type Dataset } from "../api";
+import { searchDatasets, getAllDatasets, nearbyDatasets, type Dataset } from "../api";
 
 const SOURCE_TYPES = ["api", "file", "gee"];
 const MODALITIES = ["tabular", "vector", "raster"];
@@ -84,15 +84,47 @@ export default function Discovery() {
   const [query, setQuery] = useState("");
   const [sourceFilter, setSourceFilter] = useState<string | null>(null);
   const [modalityFilter, setModalityFilter] = useState<string | null>(null);
+  const [nearMe, setNearMe] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
 
   const { data: datasets = [], isLoading } = useQuery({
     queryKey: ["datasets", query],
     queryFn: () => (query.trim() ? searchDatasets(query) : getAllDatasets()),
   });
 
+  const { data: nearbyIds, error: nearbyError } = useQuery({
+    queryKey: ["nearby", nearMe],
+    queryFn: async () => {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true })
+      );
+      const results = await nearbyDatasets(pos.coords.latitude, pos.coords.longitude);
+      return new Set(results.map((r) => r.id));
+    },
+    enabled: nearMe,
+    retry: false,
+  });
+
+  const nearMeError = geoError ?? (nearbyError ? "Impossible d'obtenir votre position. Vérifiez les autorisations de localisation." : null);
+
+  function toggleNearMe() {
+    if (nearMe) {
+      setNearMe(false);
+      setGeoError(null);
+      return;
+    }
+    if (!("geolocation" in navigator)) {
+      setGeoError("La géolocalisation n'est pas disponible dans ce navigateur.");
+      return;
+    }
+    setGeoError(null);
+    setNearMe(true);
+  }
+
   const filtered = datasets.filter((ds) => {
     if (sourceFilter && ds.source_type !== sourceFilter) return false;
     if (modalityFilter && ds.modality !== modalityFilter) return false;
+    if (nearMe && nearbyIds && !nearbyIds.has(ds.id)) return false;
     return true;
   });
 
@@ -130,7 +162,11 @@ export default function Discovery() {
         {MODALITIES.map((m) => (
           <FilterChip key={m} label={m} active={modalityFilter === m} onClick={() => setModalityFilter(m)} />
         ))}
+
+        <FilterChip label="Près de moi" active={nearMe} onClick={toggleNearMe} />
       </div>
+
+      {nearMeError && <p style={{ color: "#dc2626", fontSize: 13, marginTop: -12, marginBottom: 16 }}>{nearMeError}</p>}
 
       {isLoading ? (
         <p style={{ color: "var(--color-text-secondary)" }}>Loading...</p>

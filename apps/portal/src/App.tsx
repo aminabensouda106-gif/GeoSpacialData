@@ -1,8 +1,55 @@
+import { useState } from "react";
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 import Discovery from "./pages/Discovery";
 import DatasetPage from "./pages/DatasetPage";
 import Workbench from "./pages/Workbench";
 import Dashboard from "./pages/Dashboard";
+import { geocode } from "./api";
+import { emitFlyTo } from "./locationBus";
+
+function LocationSearch() {
+  const [q, setQ] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSearch() {
+    if (!q.trim()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await geocode(q);
+      emitFlyTo({ lat: result.lat, lon: result.lon, label: result.display_name });
+    } catch {
+      setError("Lieu introuvable.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }}>
+      <input
+        type="text"
+        placeholder="Rechercher un lieu..."
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleSearch();
+        }}
+        style={{
+          padding: "6px 10px",
+          border: "1px solid var(--color-border)",
+          borderRadius: "var(--radius)",
+          fontSize: 13,
+          outline: "none",
+          width: 200,
+        }}
+      />
+      {error && <span style={{ fontSize: 12, color: "#dc2626" }}>{error}</span>}
+      {loading && <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>...</span>}
+    </div>
+  );
+}
 
 function NavBar() {
   const { pathname } = useLocation();
@@ -38,6 +85,7 @@ function NavBar() {
       }}>
         Dashboard
       </Link>
+      <LocationSearch />
     </nav>
   );
 }

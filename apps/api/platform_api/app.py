@@ -8,10 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from platform_api.auth import optional_user
 from platform_api.cube_client import cube_load, cube_meta
 from platform_api.datasets import (
+    geocode,
     get_dataset,
     get_dataset_registry,
     get_lineage,
     get_preview,
+    nearby_datasets,
     search_datasets,
     terria_link,
 )
@@ -103,6 +105,27 @@ async def dataset_terria_link(
     if link is None:
         raise HTTPException(status_code=404, detail=f"no TerriaMap link for {dataset_id!r}")
     return {"terria_link": link}
+
+
+@app.get("/geocode")
+async def geocode_place(
+    q: Annotated[str, Query(description="Place name to geocode, e.g. a Moroccan city")],
+    user: Annotated[dict | None, Depends(optional_user)] = None,
+) -> dict[str, Any]:
+    result = await geocode(q)
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"no geocoding result for {q!r}")
+    return result
+
+
+@app.get("/nearby")
+async def nearby(
+    lat: Annotated[float, Query(description="Latitude of the search point")],
+    lon: Annotated[float, Query(description="Longitude of the search point")],
+    radius_km: Annotated[float, Query(description="Search radius in kilometres")] = 100.0,
+    user: Annotated[dict | None, Depends(optional_user)] = None,
+) -> list[dict[str, Any]]:
+    return nearby_datasets(lat, lon, radius_km)
 
 
 @app.get("/meta")

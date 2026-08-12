@@ -78,6 +78,22 @@ export function getCubeMeta() {
   return fetchJson<CubeMeta>("/meta");
 }
 
+export interface GeocodeResult {
+  lat: number;
+  lon: number;
+  display_name: string;
+}
+
+export function geocode(q: string) {
+  return fetchJson<GeocodeResult>(`/geocode?q=${encodeURIComponent(q)}`);
+}
+
+export function nearbyDatasets(lat: number, lon: number, radiusKm = 100) {
+  return fetchJson<(Dataset & { distance_km: number })[]>(
+    `/nearby?lat=${lat}&lon=${lon}&radius_km=${radiusKm}`
+  );
+}
+
 export function cubeExport(query: Record<string, unknown>) {
   return fetchJson<{ data: Record<string, unknown>[] }>("/export", {
     method: "POST",

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import os
 from pathlib import Path
 from typing import Any
@@ -8,6 +9,14 @@ import httpx
 import yaml
 
 from platform_api.config import stac_api_url, titiler_url
+
+# All current datasets are joined to the 10-commune registry covering
+# continental Morocco; there's no per-dataset AOI polygon available to the
+# BFF (sample-data/ isn't copied into the API image), so every dataset uses
+# this shared centroid/radius derived from the Terria home camera bounds
+# (infra/terria/init/geodata.json: west=-10, south=27, east=0, north=36).
+_MOROCCO_AOI_CENTER = (31.5, -5.0)  # (lat, lon)
+_MOROCCO_AOI_RADIUS_KM = 650.0
 
 _RECIPE_DIRS = [
     "recipes/datasets",
@@ -159,4 +168,55 @@ def terria_link(dataset_id: str) -> str | None:
 
     share = {"initSources": [{"workbench": [dataset_id]}]}
     encoded = urllib.parse.quote(json.dumps(share, separators=(",", ":")))
-    return f"http://localhost:3001/#start={encoded}"
+    return f"/terria/#start={encoded}"
+
+
+def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    r = 6371.0
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dlambda / 2) ** 2
+    return 2 * r * math.asin(math.sqrt(a))
+
+
+async def geocode(query: str) -> dict[str, Any] | None:
+    resp = await _httpx_get_nominatim(query)
+    if resp is None:
+        return None
+    results = resp.json()
+    if not results:
+        return None
+    top = results[0]
+    return {
+        "lat": float(top["lat"]),
+        "lon": float(top["lon"]),
+        "display_name": top.get("display_name", query),
+    }
+
+
+async def _httpx_get_nominatim(query: str) -> httpx.Response | None:
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                "https://nominatim.openstreetmap.org/search",
+                params={"q": query, "format": "json", "limit": 1},
+                headers={"User-Agent": "GeoSpacialData-POC/0.1 (support@geodata.local)"},
+                timeout=10,
+            )
+            if resp.status_code != 200:
+                return None
+            return resp
+    except httpx.HTTPError:
+        return None
+
+
+def nearby_datasets(lat: float, lon: float, radius_km: float) -> list[dict[str, Any]]:
+    center_lat, center_lon = _MOROCCO_AOI_CENTER
+    distance = _haversine_km(lat, lon, center_lat, center_lon)
+    if distance > radius_km + _MOROCCO_AOI_RADIUS_KM:
+        return []
+    return [
+        {**ds, "distance_km": round(distance, 1)}
+        for ds in get_dataset_registry()
+    ]
