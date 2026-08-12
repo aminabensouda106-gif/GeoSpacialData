@@ -1,0 +1,26 @@
+id: vegetation_indices
+title: "Indices de végétation multi-spectraux"
+description: >
+  NDVI, EVI, SAVI, NDWI, MSAVI2, LAI, NDMI par commune et par mois.
+  Calculés à partir de composites Sentinel-2 synthétiques. Permet la
+  comparaison entre indices pour le suivi de la santé végétale.
+source:
+  type: file_source
+  endpoint: sample-data/vegetation_indices.csv
+  auth: none
+target:
+  modality: tabular
+  format: parquet
+  zone: serving/cube/vegetation_indices.parquet
+quality:
+  checks: [schema_conformance, value_range, completeness]
+governance:
+  owner: platform-team
+  classification: public
+  source_class: modelled
+  license: CC0-1.0
+  citation: "GeoSpacialData POC synthetic vegetation indices"
+  caveats: >
+    Computed from synthetic fixture scenes, not real Sentinel-2 imagery.
+    Values do not reflect real vegetation conditions and must not be
+    used for any real analysis.

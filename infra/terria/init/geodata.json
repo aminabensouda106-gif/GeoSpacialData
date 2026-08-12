@@ -102,6 +102,59 @@
           "opacity": 0.8
         }
       ]
+    },
+    {
+      "type": "group",
+      "id": "agricultural_data",
+      "name": "Données Agricoles",
+      "description": "Indicateurs agricoles et environnementaux par commune",
+      "members": [
+        {
+          "type": "wms",
+          "id": "modis_evi",
+          "name": "Indice de Végétation Amélioré — EVI (MODIS Terra)",
+          "description": "Indice de végétation amélioré 8 jours, moins sensible à l'atmosphère et au sol que le NDVI.\n\n<b>Source:</b> NASA GIBS",
+          "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi",
+          "layers": "MODIS_Terra_EVI_8Day",
+          "opacity": 0.7
+        },
+        {
+          "type": "wms",
+          "id": "modis_lai",
+          "name": "Indice de Surface Foliaire — LAI (MODIS Terra)",
+          "description": "Surface foliaire par unité de surface au sol 8 jours — densité de la canopée.\n\n<b>Source:</b> NASA GIBS",
+          "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi",
+          "layers": "MODIS_Terra_Leaf_Area_Index_8Day",
+          "opacity": 0.7
+        },
+        {
+          "type": "wms",
+          "id": "copernicus_soil_water",
+          "name": "Indice d'Humidité du Sol (Copernicus SWI)",
+          "description": "Indice d'humidité du sol à 10 jours — suivi de la sécheresse et de l'irrigation.\n\n<b>Source:</b> Copernicus Global Land Service",
+          "url": "https://land.copernicus.vgt.vito.be/geoserver/wms",
+          "layers": "SWI10_V3_GLOBAL",
+          "opacity": 0.6
+        },
+        {
+          "type": "wms",
+          "id": "chirps_rainfall",
+          "name": "Estimations de Précipitations (CHIRPS)",
+          "description": "Précipitations cumulées sur 25 jours — pluviométrie pour le suivi agricole.\n\n<b>Source:</b> NASA GIBS",
+          "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi",
+          "layers": "CHIRPS_Final_25-Daily_Precipitation",
+          "opacity": 0.6
+        },
+        {
+          "type": "wms",
+          "id": "modis_npp",
+          "name": "Productivité Primaire Nette (MODIS Terra)",
+          "description": "Productivité primaire nette 8 jours — croissance de la biomasse végétale.\n\n<b>Source:</b> NASA GIBS",
+          "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi",
+          "layers": "MODIS_Terra_Net_Primary_Productivity_8Day",
+          "opacity": 0.6
+        }
+      ]
     }
   ],
   "homeCamera": {

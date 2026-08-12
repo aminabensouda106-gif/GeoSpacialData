@@ -1,0 +1,70 @@
+cubes:
+  - name: soil_properties
+    title: Propriétés physico-chimiques du sol
+    description: >-
+      pH, matière organique, azote, phosphore, potassium, texture et
+      capacité de rétention en eau, mensuels par commune.
+    sql: >
+      SELECT * FROM read_parquet('s3://serving/cube/soil_properties.parquet')
+
+    dimensions:
+      - name: period
+        title: Période
+        sql: period
+        type: string
+
+      - name: commune_code
+        title: Code Commune
+        sql: commune_code
+        type: string
+        primary_key: true
+        meta:
+          geo_join: communes_boundaries
+
+    measures:
+      - name: avg_ph
+        title: pH moyen
+        sql: ph
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: avg_organic_matter
+        title: Matière organique moyenne (%)
+        sql: organic_matter_pct
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: avg_nitrogen
+        title: Azote total moyen (kg/ha)
+        sql: nitrogen_kg_ha
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: avg_phosphorus
+        title: Phosphore assimilable moyen (mg/kg)
+        sql: phosphorus_mg_kg
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: avg_potassium
+        title: Potassium échangeable moyen (mg/kg)
+        sql: potassium_mg_kg
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: avg_clay_pct
+        title: Argile moyenne (%)
+        sql: clay_pct
+        type: avg
+
+      - name: avg_water_retention
+        title: Capacité de rétention en eau moyenne (mm)
+        sql: water_retention_mm
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."

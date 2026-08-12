@@ -1,0 +1,25 @@
+id: water_resources
+title: "Ressources hydriques et irrigation"
+description: >
+  Niveau des nappes phréatiques (m), débit des cours d'eau (m³/s), taux
+  de remplissage des barrages (%), surface irriguée (ha), efficience
+  d'irrigation (%), pluviométrie mensuelle (mm) par commune.
+source:
+  type: file_source
+  endpoint: sample-data/water_resources.csv
+  auth: none
+target:
+  modality: tabular
+  format: parquet
+  zone: serving/cube/water_resources.parquet
+quality:
+  checks: [schema_conformance, value_range, completeness]
+governance:
+  owner: platform-team
+  classification: public
+  source_class: modelled
+  license: CC0-1.0
+  citation: "GeoSpacialData POC synthetic water resources"
+  caveats: >
+    Synthetic values generated for demonstration purposes only. Do not
+    use for real agronomic, land-use, or investment decisions.

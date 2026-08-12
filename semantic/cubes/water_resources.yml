@@ -1,0 +1,64 @@
+cubes:
+  - name: water_resources
+    title: Ressources hydriques et irrigation
+    description: >-
+      Nappes phréatiques, débits, taux de remplissage des barrages,
+      surfaces irriguées, efficience d'irrigation et pluviométrie
+      mensuels par commune.
+    sql: >
+      SELECT * FROM read_parquet('s3://serving/cube/water_resources.parquet')
+
+    dimensions:
+      - name: period
+        title: Période
+        sql: period
+        type: string
+
+      - name: commune_code
+        title: Code Commune
+        sql: commune_code
+        type: string
+        primary_key: true
+        meta:
+          geo_join: communes_boundaries
+
+    measures:
+      - name: avg_groundwater_level
+        title: Niveau moyen des nappes phréatiques (m)
+        sql: groundwater_level_m
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: avg_river_flow
+        title: Débit moyen des cours d'eau (m³/s)
+        sql: river_flow_m3_s
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: avg_dam_fill_rate
+        title: Taux de remplissage moyen des barrages (%)
+        sql: dam_fill_rate_pct
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: total_irrigated_area
+        title: Surface irriguée totale (ha)
+        sql: irrigated_area_ha
+        type: sum
+
+      - name: avg_irrigation_efficiency
+        title: Efficience d'irrigation moyenne (%)
+        sql: irrigation_efficiency_pct
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: total_rainfall
+        title: Pluviométrie totale (mm)
+        sql: rainfall_mm
+        type: sum
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."

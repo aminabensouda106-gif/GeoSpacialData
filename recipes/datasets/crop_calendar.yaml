@@ -1,0 +1,25 @@
+id: crop_calendar
+title: "Calendrier cultural et rendements par commune"
+description: >
+  Culture principale, dates de semis et récolte, rendement estimé (q/ha),
+  surface cultivée (ha), type d'irrigation, consommation d'eau (m³/ha),
+  indice de stress hydrique par commune et par saison.
+source:
+  type: file_source
+  endpoint: sample-data/crop_calendar.csv
+  auth: none
+target:
+  modality: tabular
+  format: parquet
+  zone: serving/cube/crop_calendar.parquet
+quality:
+  checks: [schema_conformance, value_range, completeness]
+governance:
+  owner: platform-team
+  classification: public
+  source_class: modelled
+  license: CC0-1.0
+  citation: "GeoSpacialData POC synthetic crop calendar"
+  caveats: >
+    Synthetic values generated for demonstration purposes only. Do not
+    use for real agronomic, land-use, or investment decisions.

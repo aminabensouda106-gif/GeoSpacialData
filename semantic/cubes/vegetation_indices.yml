@@ -1,0 +1,99 @@
+cubes:
+  - name: vegetation_indices
+    title: Indices de végétation multi-spectraux
+    description: >-
+      NDVI, EVI, SAVI, NDWI, MSAVI2, LAI et NDMI mensuels par commune,
+      calculés à partir de composites Sentinel-2 synthétiques.
+    sql: >
+      SELECT * FROM read_parquet('s3://serving/cube/vegetation_indices.parquet')
+
+    # Hub for agriculture_overview: climate_indicators, soil_properties,
+    # water_resources and land_degradation all share this cube's exact
+    # (commune_code, period) monthly grain, so a one_to_one join on both
+    # columns is safe (no fan-out). crop_calendar is deliberately NOT
+    # joined here — its grain is (commune_code, season, crop_type,
+    # irrigation_type), and joining that to a monthly cube on commune_code
+    # alone would multiply rows and silently skew avg/sum measures on
+    # both sides. It stays a standalone cube instead.
+    joins:
+      - name: climate_indicators
+        relationship: one_to_one
+        sql: "{CUBE}.commune_code = {climate_indicators}.commune_code AND {CUBE}.period = {climate_indicators}.period"
+
+      - name: soil_properties
+        relationship: one_to_one
+        sql: "{CUBE}.commune_code = {soil_properties}.commune_code AND {CUBE}.period = {soil_properties}.period"
+
+      - name: water_resources
+        relationship: one_to_one
+        sql: "{CUBE}.commune_code = {water_resources}.commune_code AND {CUBE}.period = {water_resources}.period"
+
+      - name: land_degradation
+        relationship: one_to_one
+        sql: "{CUBE}.commune_code = {land_degradation}.commune_code AND {CUBE}.period = {land_degradation}.period"
+
+    dimensions:
+      - name: period
+        title: Période
+        description: Période mensuelle (format AAAA-MM)
+        sql: period
+        type: string
+
+      - name: commune_code
+        title: Code Commune
+        description: Identifiant de commune, joignable avec communes_boundaries
+        sql: commune_code
+        type: string
+        primary_key: true
+        meta:
+          geo_join: communes_boundaries
+
+    measures:
+      - name: mean_ndvi
+        title: NDVI moyen
+        sql: ndvi
+        type: avg
+        meta:
+          caveat: "Données synthétiques, ne reflètent pas la végétation réelle."
+
+      - name: mean_evi
+        title: EVI moyen
+        sql: evi
+        type: avg
+        meta:
+          caveat: "Données synthétiques, ne reflètent pas la végétation réelle."
+
+      - name: mean_savi
+        title: SAVI moyen
+        sql: savi
+        type: avg
+        meta:
+          caveat: "Données synthétiques, ne reflètent pas la végétation réelle."
+
+      - name: mean_ndwi
+        title: NDWI moyen
+        sql: ndwi
+        type: avg
+        meta:
+          caveat: "Données synthétiques, ne reflètent pas la végétation réelle."
+
+      - name: mean_msavi2
+        title: MSAVI2 moyen
+        sql: msavi2
+        type: avg
+        meta:
+          caveat: "Données synthétiques, ne reflètent pas la végétation réelle."
+
+      - name: mean_lai
+        title: LAI moyen
+        sql: lai
+        type: avg
+        meta:
+          caveat: "Données synthétiques, ne reflètent pas la végétation réelle."
+
+      - name: mean_ndmi
+        title: NDMI moyen
+        sql: ndmi
+        type: avg
+        meta:
+          caveat: "Données synthétiques, ne reflètent pas la végétation réelle."

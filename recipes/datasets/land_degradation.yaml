@@ -1,0 +1,25 @@
+id: land_degradation
+title: "Indicateurs de dégradation des terres"
+description: >
+  Indice de dégradation des terres (LDI), érosion hydrique (t/ha/an),
+  perte de couvert végétal (%), salinisation (dS/m), désertification
+  (indice d'aridité), changement d'occupation du sol par commune.
+source:
+  type: file_source
+  endpoint: sample-data/land_degradation.csv
+  auth: none
+target:
+  modality: tabular
+  format: parquet
+  zone: serving/cube/land_degradation.parquet
+quality:
+  checks: [schema_conformance, value_range, completeness]
+governance:
+  owner: platform-team
+  classification: public
+  source_class: modelled
+  license: CC0-1.0
+  citation: "GeoSpacialData POC synthetic land degradation indicators"
+  caveats: >
+    Synthetic values generated for demonstration purposes only. Do not
+    use for real agronomic, land-use, or investment decisions.

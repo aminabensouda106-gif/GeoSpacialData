@@ -1,0 +1,59 @@
+cubes:
+  - name: land_degradation
+    title: Indicateurs de dégradation des terres
+    description: >-
+      Indice de dégradation des terres, érosion hydrique, perte de
+      couvert végétal, salinisation et indice d'aridité mensuels par
+      commune.
+    sql: >
+      SELECT * FROM read_parquet('s3://serving/cube/land_degradation.parquet')
+
+    dimensions:
+      - name: period
+        title: Période
+        sql: period
+        type: string
+
+      - name: commune_code
+        title: Code Commune
+        sql: commune_code
+        type: string
+        primary_key: true
+        meta:
+          geo_join: communes_boundaries
+
+    measures:
+      - name: avg_ldi
+        title: Indice de dégradation des terres moyen (LDI)
+        sql: ldi
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: avg_erosion
+        title: Érosion hydrique moyenne (t/ha/an)
+        sql: erosion_t_ha_yr
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: avg_vegetation_loss
+        title: Perte de couvert végétal moyenne (%)
+        sql: vegetation_loss_pct
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: avg_salinity
+        title: Salinisation moyenne (dS/m)
+        sql: salinity_ds_m
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: avg_aridity_index
+        title: Indice d'aridité moyen
+        sql: aridity_index
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."

@@ -289,7 +289,14 @@ services:
     volumes:
       - ./semantic/cube.js:/cube/conf/cube.js:ro
       - ./semantic/cubes/ndvi_zonal_stats.yml:/cube/conf/model/ndvi_zonal_stats.yml:ro
+      - ./semantic/cubes/soil_properties.yml:/cube/conf/model/soil_properties.yml:ro
+      - ./semantic/cubes/crop_calendar.yml:/cube/conf/model/crop_calendar.yml:ro
+      - ./semantic/cubes/vegetation_indices.yml:/cube/conf/model/vegetation_indices.yml:ro
+      - ./semantic/cubes/climate_indicators.yml:/cube/conf/model/climate_indicators.yml:ro
+      - ./semantic/cubes/land_degradation.yml:/cube/conf/model/land_degradation.yml:ro
+      - ./semantic/cubes/water_resources.yml:/cube/conf/model/water_resources.yml:ro
       - ./semantic/views/commune_overview.yml:/cube/conf/model/commune_overview.yml:ro
+      - ./semantic/views/agriculture_overview.yml:/cube/conf/model/agriculture_overview.yml:ro
     depends_on:
       seaweedfs:
         condition: service_healthy

@@ -1,0 +1,26 @@
+id: soil_properties
+title: "Propriétés physico-chimiques du sol par commune"
+description: >
+  pH, matière organique (%), azote total (kg/ha), phosphore assimilable
+  (mg/kg), potassium échangeable (mg/kg), texture (% argile/limon/sable),
+  capacité de rétention en eau (mm), conductivité électrique (dS/m) par
+  commune. Données alternatives synthétiques pour la démonstration.
+source:
+  type: file_source
+  endpoint: sample-data/soil_properties.csv
+  auth: none
+target:
+  modality: tabular
+  format: parquet
+  zone: serving/cube/soil_properties.parquet
+quality:
+  checks: [schema_conformance, value_range, completeness]
+governance:
+  owner: platform-team
+  classification: public
+  source_class: modelled
+  license: CC0-1.0
+  citation: "GeoSpacialData POC synthetic soil properties"
+  caveats: >
+    Synthetic values generated for demonstration purposes only. Do not
+    use for real agronomic, land-use, or investment decisions.

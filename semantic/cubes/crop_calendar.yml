@@ -1,0 +1,60 @@
+cubes:
+  - name: crop_calendar
+    title: Calendrier cultural et rendements
+    description: >-
+      Culture principale, type d'irrigation, rendement, surface
+      cultivée, consommation d'eau et stress hydrique par commune et
+      par saison.
+    sql: >
+      SELECT * FROM read_parquet('s3://serving/cube/crop_calendar.parquet')
+
+    dimensions:
+      - name: season
+        title: Saison
+        sql: season
+        type: string
+
+      - name: crop_type
+        title: Culture
+        sql: crop_type
+        type: string
+
+      - name: irrigation_type
+        title: Type d'irrigation
+        sql: irrigation_type
+        type: string
+
+      - name: commune_code
+        title: Code Commune
+        sql: commune_code
+        type: string
+        primary_key: true
+        meta:
+          geo_join: communes_boundaries
+
+    measures:
+      - name: avg_yield
+        title: Rendement moyen (q/ha)
+        sql: yield_q_ha
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: total_cultivated_area
+        title: Surface cultivée totale (ha)
+        sql: cultivated_area_ha
+        type: sum
+
+      - name: avg_water_consumption
+        title: Consommation d'eau moyenne (m³/ha)
+        sql: water_consumption_m3_ha
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."
+
+      - name: avg_water_stress_index
+        title: Indice de stress hydrique moyen
+        sql: water_stress_index
+        type: avg
+        meta:
+          caveat: "Données synthétiques générées à des fins de démonstration."

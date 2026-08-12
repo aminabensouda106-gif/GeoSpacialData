@@ -1,0 +1,26 @@
+id: climate_indicators
+title: "Indicateurs climatiques agricoles"
+description: >
+  Température moyenne/min/max (°C), précipitations (mm),
+  évapotranspiration potentielle (mm), degrés-jours de croissance (GDD),
+  jours de gel, indice de sécheresse SPI, bilan hydrique par commune et
+  par mois.
+source:
+  type: file_source
+  endpoint: sample-data/climate_indicators.csv
+  auth: none
+target:
+  modality: tabular
+  format: parquet
+  zone: serving/cube/climate_indicators.parquet
+quality:
+  checks: [schema_conformance, value_range, completeness]
+governance:
+  owner: platform-team
+  classification: public
+  source_class: modelled
+  license: CC0-1.0
+  citation: "GeoSpacialData POC synthetic climate indicators"
+  caveats: >
+    Synthetic values generated for demonstration purposes only. Do not
+    use for real agronomic, land-use, or investment decisions.

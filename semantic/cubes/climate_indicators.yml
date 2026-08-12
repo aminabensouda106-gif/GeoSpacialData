@@ -1,0 +1,79 @@
+cubes:
+  - name: climate_indicators
+    title: Indicateurs climatiques agricoles
+    description: >-
+      Température, précipitations, évapotranspiration, degrés-jours de
+      croissance, jours de gel et indice de sécheresse SPI mensuels par
+      commune.
+    sql: >
+      SELECT * FROM read_parquet('s3://serving/cube/climate_indicators.parquet')
+
+    dimensions:
+      - name: period
+        title: Période
+        description: Période mensuelle (format AAAA-MM)
+        sql: period
+        type: string
+
+      - name: commune_code
+        title: Code Commune
+        sql: commune_code
+        type: string
+        primary_key: true
+        meta:
+          geo_join: communes_boundaries
+
+    measures:
+      - name: avg_temp
+        title: Température moyenne (°C)
+        sql: avg_temp_c
+        type: avg
+        meta:
+          caveat: "Données climatiques synthétiques pour la démonstration."
+
+      - name: min_temp
+        title: Température minimale (°C)
+        sql: min_temp_c
+        type: min
+        meta:
+          caveat: "Données climatiques synthétiques pour la démonstration."
+
+      - name: max_temp
+        title: Température maximale (°C)
+        sql: max_temp_c
+        type: max
+        meta:
+          caveat: "Données climatiques synthétiques pour la démonstration."
+
+      - name: total_precipitation
+        title: Précipitations totales (mm)
+        sql: precipitation_mm
+        type: sum
+        meta:
+          caveat: "Données climatiques synthétiques pour la démonstration."
+
+      - name: total_et0
+        title: Évapotranspiration totale (mm)
+        sql: et0_mm
+        type: sum
+        meta:
+          caveat: "Données climatiques synthétiques pour la démonstration."
+
+      - name: total_gdd
+        title: Degrés-jours de croissance cumulés (GDD)
+        sql: gdd
+        type: sum
+        meta:
+          caveat: "Données climatiques synthétiques pour la démonstration."
+
+      - name: frost_days
+        title: Jours de gel
+        sql: frost_days
+        type: sum
+
+      - name: spi_index
+        title: Indice de sécheresse (SPI)
+        sql: spi_index
+        type: avg
+        meta:
+          caveat: "Données climatiques synthétiques pour la démonstration."

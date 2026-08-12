@@ -1,0 +1,42 @@
+views:
+  - name: agriculture_overview
+    title: Vue d'ensemble agricole
+    description: >-
+      Indices de végétation, sol, climat, ressources hydriques et
+      dégradation des terres combinés par commune et par mois, pour
+      l'analyse croisée. crop_calendar n'est pas inclus ici (grain
+      saisonnier différent) — voir le cube crop_calendar séparément.
+
+    cubes:
+      - join_path: vegetation_indices
+        includes:
+          - commune_code
+          - period
+          - mean_ndvi
+          - mean_evi
+          - mean_savi
+          - mean_lai
+
+      - join_path: vegetation_indices.climate_indicators
+        includes:
+          - avg_temp
+          - total_precipitation
+          - spi_index
+
+      - join_path: vegetation_indices.soil_properties
+        includes:
+          - avg_ph
+          - avg_organic_matter
+          - avg_water_retention
+
+      - join_path: vegetation_indices.water_resources
+        includes:
+          - avg_groundwater_level
+          - avg_dam_fill_rate
+          - total_irrigated_area
+
+      - join_path: vegetation_indices.land_degradation
+        includes:
+          - avg_ldi
+          - avg_erosion
+          - avg_aridity_index
