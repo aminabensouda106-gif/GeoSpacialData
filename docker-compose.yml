@@ -1,3 +1,19 @@
+# Unified URL scheme (M7 port unification) — the Portal's nginx (or the Vite
+# dev server) is the single entry point; most backend services are reachable
+# only through it, not on their own host ports:
+#
+#   Portal:    http://localhost:8080
+#   API:       http://localhost:8080/api/
+#   TerriaMap: http://localhost:8080/terria/
+#   STAC:      http://localhost:8080/stac/
+#   TiTiler:   http://localhost:8080/tiler/
+#   Cube.js:   http://localhost:8080/cube/
+#   Keycloak:  http://localhost:8080/auth/
+#   Dagster:   http://localhost:3000        (keeps its own host port — own UI)
+#   Jupyter:   http://localhost:8890        (keeps its own host port — own UI)
+#   Postgres:  localhost:5432               (kept for local DB tooling)
+#   SeaweedFS: localhost:8333 / 9333 / 8888 (kept for local S3 tooling)
+#
 services:
   # --- M1: object storage + relational catalog store -----------------------
 
@@ -195,8 +211,6 @@ services:
       APP_PORT: "8081"
       ENVIRONMENT: local
       RELOAD: "false"
-    ports:
-      - "8081:8080" # image's uvicorn ignores APP_PORT and always binds 8080
     depends_on:
       postgres:
         condition: service_healthy
@@ -223,8 +237,6 @@ services:
       AWS_SECRET_ACCESS_KEY: ${SEAWEEDFS_SECRET_KEY:-platform-dev-secret-please-rotate}
       GDAL_DISABLE_READDIR_ON_OPEN: "EMPTY_DIR"
       CPL_VSIL_CURL_ALLOWED_EXTENSIONS: ".tif,.TIF,.tiff"
-    ports:
-      - "8082:80" # image's gunicorn listens on 80, not the 8000 its own docs assume
     depends_on:
       seaweedfs:
         condition: service_healthy
@@ -248,8 +260,6 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       KC_HTTP_PORT: "8083"
       KC_HEALTH_ENABLED: "true"
-    ports:
-      - "8083:8083"
     volumes:
       - ./infra/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
     healthcheck:
@@ -276,8 +286,6 @@ services:
       CUBEJS_API_SECRET: ${CUBE_API_SECRET:-cube-dev-secret-please-rotate}
       CUBEJS_EXTERNAL_DEFAULT: "true"
       CUBEJS_SCHEMA_PATH: model
-    ports:
-      - "4000:4000"
     volumes:
       - ./semantic/cube.js:/cube/conf/cube.js:ro
       - ./semantic/cubes/ndvi_zonal_stats.yml:/cube/conf/model/ndvi_zonal_stats.yml:ro
@@ -366,8 +374,6 @@ services:
       context: .
       dockerfile: infra/terria/Dockerfile
     container_name: geo-terria
-    ports:
-      - "3001:3001"
     volumes:
       - ./infra/terria/serverconfig.json:/app/serverconfig.json:ro
       - ./infra/terria/config.json:/app/wwwroot/config.json:ro

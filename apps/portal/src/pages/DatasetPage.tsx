@@ -158,7 +158,7 @@ export default function DatasetPage() {
             </Link>
           )}
           <a
-            href={`http://localhost:3001/#start=${encodeURIComponent(JSON.stringify({ initSources: [{ workbench: [ds.id === "ndvi_composite" ? "ndvi_zonal_stats" : ds.id] }] }))}`}
+            href={`/terria/#start=${encodeURIComponent(JSON.stringify({ initSources: [{ workbench: [ds.id === "ndvi_composite" ? "ndvi_zonal_stats" : ds.id] }] }))}`}
             target="_blank"
             rel="noopener noreferrer"
           >
