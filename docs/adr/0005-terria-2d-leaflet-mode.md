@@ -1,6 +1,6 @@
 # 0005 — TerriaMap forced to 2D Leaflet mode
 
-**Status:** Accepted (M7)
+**Status:** Superseded (see Update below) — originally Accepted (M7)
 
 ## Context
 
@@ -26,3 +26,21 @@ Force 2D Leaflet mode via three mechanisms:
   This is acceptable for the POC's 2D choropleth and overlay use cases.
 - If a Cesium Ion token is later provided, removing the `"map": "2d"`
   setting and the `useCesium*: false` flags re-enables 3D mode.
+
+## Update — reversed to 3dSmooth
+
+`"map"`/`"viewerMode"` are now `"3dSmooth"` instead of `"2d"` in both
+`config.json` and `geodata.json`, with `"cesiumTerrainUrl": ""` added
+alongside the existing `useCesiumIonTerrain: false` /
+`useCesiumIonBingImagery: false` flags.
+
+`3dSmooth` runs CesiumJS on a plain WGS84 ellipsoid — no terrain draping,
+no Bing imagery, no Cesium Ion requests of any kind — so the zero-external-
+credentials constraint from the original decision still holds; only the
+default *viewer mode* changes, not the token requirement. The black-globe
+failure mode this ADR was written to avoid was specifically terrain/imagery
+requests hitting Ion with no token, not 3D rendering itself.
+
+Users can still switch to the flat 2D Leaflet view at any time via
+TerriaJS's built-in viewer-mode control in the map UI — this change only
+affects the default on load.

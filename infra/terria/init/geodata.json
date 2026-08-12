@@ -110,5 +110,5 @@
     "east": 0,
     "north": 36
   },
-  "viewerMode": "2d"
+  "viewerMode": "3dSmooth"
 }

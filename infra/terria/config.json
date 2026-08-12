@@ -18,8 +18,9 @@
       "confirmationRequired": false
     },
     "regionMappingDefinitionsUrl": "data/regionMapping.json",
-    "map": "2d",
+    "map": "3dSmooth",
     "useCesiumIonTerrain": false,
-    "useCesiumIonBingImagery": false
+    "useCesiumIonBingImagery": false,
+    "cesiumTerrainUrl": ""
   }
 }

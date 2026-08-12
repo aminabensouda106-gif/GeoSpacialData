@@ -398,6 +398,7 @@ function ChoroplethMap({ rows, geoJoinDim, measure }: {
 }) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const [tilted, setTilted] = useState(true);
 
   const valueMap = useMemo(() => {
     const m = new Map<string, number>();
@@ -435,9 +436,11 @@ function ChoroplethMap({ rows, geoJoinDim, measure }: {
       },
       center: [-7.5, 33.5],
       zoom: 5,
+      pitch: 45,
+      bearing: -17.6,
     });
 
-    map.addControl(new maplibregl.NavigationControl(), "top-right");
+    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
 
     map.on("load", () => {
       map.addSource("communes", {
@@ -538,6 +541,30 @@ function ChoroplethMap({ rows, geoJoinDim, measure }: {
         borderRadius: "var(--radius)",
         border: "1px solid var(--color-border)",
       }} />
+      <button
+        onClick={() => {
+          const map = mapRef.current;
+          if (!map) return;
+          const next = !tilted;
+          map.easeTo({ pitch: next ? 45 : 0, bearing: next ? -17.6 : 0 });
+          setTilted(next);
+        }}
+        style={{
+          position: "absolute",
+          top: 16,
+          right: 16,
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-border)",
+          borderRadius: "var(--radius)",
+          padding: "6px 12px",
+          fontSize: 13,
+          fontWeight: 500,
+          boxShadow: "var(--shadow)",
+          cursor: "pointer",
+        }}
+      >
+        {tilted ? "Vue à plat" : "Vue inclinée"}
+      </button>
       <div style={{
         position: "absolute",
         bottom: 16,
