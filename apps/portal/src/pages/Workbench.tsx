@@ -108,130 +108,117 @@ export default function Workbench() {
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
   return (
-    <div style={{ display: "flex", gap: 20, minHeight: "calc(100vh - 120px)" }}>
-      {/* Sidebar: cube & member picker */}
-      <div style={{
-        width: 280,
-        flexShrink: 0,
-        background: "var(--color-surface)",
-        border: "1px solid var(--color-border)",
-        borderRadius: "var(--radius)",
-        padding: 16,
-        boxShadow: "var(--shadow)",
-        overflowY: "auto",
-        maxHeight: "calc(100vh - 120px)",
-      }}>
-        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Cube</h3>
-        <select
-          value={selectedCube}
-          onChange={(e) => {
-            setSelectedCube(e.target.value);
-            setSelectedMeasures([]);
-            setSelectedDimensions([]);
-          }}
-          style={{
-            width: "100%",
-            padding: "6px 8px",
-            borderRadius: "var(--radius)",
-            border: "1px solid var(--color-border)",
-            fontSize: 13,
-            marginBottom: 16,
-          }}
-        >
-          <option value="">Select a cube...</option>
-          {cubes.map((c) => (
-            <option key={c.name} value={c.name}>{c.title}</option>
-          ))}
-        </select>
-
-        {activeCube && (
-          <>
-            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Measures</h3>
-            {activeCube.measures.filter(m => m.isVisible).map((m) => (
-              <MemberCheckbox
-                key={m.name}
-                member={m}
-                checked={selectedMeasures.includes(m.name)}
-                onChange={() => toggleMeasure(m.name)}
-              />
-            ))}
-
-            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Dimensions</h3>
-            {activeCube.dimensions.filter(d => d.isVisible).map((d) => (
-              <MemberCheckbox
-                key={d.name}
-                member={d}
-                checked={selectedDimensions.includes(d.name)}
-                onChange={() => toggleDimension(d.name)}
-              />
-            ))}
-          </>
-        )}
+    <div>
+      <div className="page-header">
+        <div>
+          <div className="eyebrow">Query builder</div>
+          <h1>Workbench</h1>
+          <p>Compose cube queries and switch between table, chart and map views.</p>
+        </div>
       </div>
 
-      {/* Main content area */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        {/* View mode tabs + share */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <div style={{ display: "flex", gap: 4 }}>
-            {(["table", "chart", "map"] as ViewMode[]).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                disabled={mode === "map" && !hasGeoJoin}
-                style={{
-                  padding: "6px 16px",
-                  borderRadius: "var(--radius)",
-                  border: "1px solid",
-                  borderColor: viewMode === mode ? "var(--color-primary)" : "var(--color-border)",
-                  background: viewMode === mode ? "var(--color-primary)" : "transparent",
-                  color: viewMode === mode ? "#fff" : "var(--color-text-secondary)",
-                  fontSize: 13,
-                  fontWeight: 500,
-                  opacity: mode === "map" && !hasGeoJoin ? 0.4 : 1,
-                }}
-              >
-                {mode.charAt(0).toUpperCase() + mode.slice(1)}
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={() => navigator.clipboard.writeText(shareUrl)}
-            style={{
-              padding: "6px 14px",
-              borderRadius: "var(--radius)",
-              border: "1px solid var(--color-border)",
-              background: "transparent",
-              fontSize: 13,
-              color: "var(--color-text-secondary)",
+      <div style={{ display: "flex", gap: 20, minHeight: "calc(100vh - 220px)" }}>
+        {/* Sidebar: cube & member picker */}
+        <div className="card" style={{
+          width: 280,
+          flexShrink: 0,
+          padding: 16,
+          overflowY: "auto",
+          maxHeight: "calc(100vh - 140px)",
+          position: "sticky",
+          top: 76,
+          alignSelf: "flex-start",
+        }}>
+          <div className="section-title">Cube</div>
+          <select
+            className="select"
+            value={selectedCube}
+            onChange={(e) => {
+              setSelectedCube(e.target.value);
+              setSelectedMeasures([]);
+              setSelectedDimensions([]);
             }}
+            style={{ marginBottom: 18 }}
           >
-            Copy Share URL
-          </button>
+            <option value="">Select a cube...</option>
+            {cubes.map((c) => (
+              <option key={c.name} value={c.name}>{c.title}</option>
+            ))}
+          </select>
+
+          {activeCube && (
+            <>
+              <div className="section-title">Measures</div>
+              <div style={{ marginBottom: 18 }}>
+                {activeCube.measures.filter(m => m.isVisible).map((m) => (
+                  <MemberCheckbox
+                    key={m.name}
+                    member={m}
+                    checked={selectedMeasures.includes(m.name)}
+                    onChange={() => toggleMeasure(m.name)}
+                  />
+                ))}
+              </div>
+
+              <div className="section-title">Dimensions</div>
+              <div>
+                {activeCube.dimensions.filter(d => d.isVisible).map((d) => (
+                  <MemberCheckbox
+                    key={d.name}
+                    member={d}
+                    checked={selectedDimensions.includes(d.name)}
+                    onChange={() => toggleDimension(d.name)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Caveat banners */}
-        {activeCube && selectedMeasures.length > 0 && (
-          <CaveatBanners measures={activeCube.measures} selected={selectedMeasures} />
-        )}
+        {/* Main content area */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* View mode tabs + share */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div className="segmented">
+              {(["table", "chart", "map"] as ViewMode[]).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  disabled={mode === "map" && !hasGeoJoin}
+                  className={"segmented-item" + (viewMode === mode ? " active" : "")}
+                >
+                  {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => navigator.clipboard.writeText(shareUrl)} className="btn btn-outline btn-sm">
+              Copy Share URL
+            </button>
+          </div>
 
-        {/* Content */}
-        {!selectedCube && (
-          <EmptyState text="Select a cube from the sidebar to start exploring." />
-        )}
-        {selectedCube && selectedMeasures.length === 0 && (
-          <EmptyState text="Select at least one measure to query data." />
-        )}
-        {queryLoading && <p style={{ color: "var(--color-text-secondary)" }}>Querying Cube...</p>}
-        {rows.length > 0 && viewMode === "table" && (
-          <DataTable rows={rows} measures={selectedMeasures} dimensions={selectedDimensions} />
-        )}
-        {rows.length > 0 && viewMode === "chart" && (
-          <BarChart rows={rows} measures={selectedMeasures} dimensions={selectedDimensions} />
-        )}
-        {rows.length > 0 && viewMode === "map" && geoJoinDim && (
-          <ChoroplethMap rows={rows} geoJoinDim={geoJoinDim.name} measure={selectedMeasures[0]} />
-        )}
+          {/* Caveat banners */}
+          {activeCube && selectedMeasures.length > 0 && (
+            <CaveatBanners measures={activeCube.measures} selected={selectedMeasures} />
+          )}
+
+          {/* Content */}
+          {!selectedCube && (
+            <EmptyState text="Select a cube from the sidebar to start exploring." />
+          )}
+          {selectedCube && selectedMeasures.length === 0 && (
+            <EmptyState text="Select at least one measure to query data." />
+          )}
+          {queryLoading && <div className="state-loading"><div className="spinner" /> Querying Cube…</div>}
+          {rows.length > 0 && viewMode === "table" && (
+            <DataTable rows={rows} measures={selectedMeasures} dimensions={selectedDimensions} />
+          )}
+          {rows.length > 0 && viewMode === "chart" && (
+            <BarChart rows={rows} measures={selectedMeasures} dimensions={selectedDimensions} />
+          )}
+          {rows.length > 0 && viewMode === "map" && geoJoinDim && (
+            <ChoroplethMap rows={rows} geoJoinDim={geoJoinDim.name} measure={selectedMeasures[0]} />
+          )}
+        </div>
       </div>
     </div>
   );
@@ -242,17 +229,20 @@ function MemberCheckbox({ member, checked, onChange }: { member: CubeMember; che
     <label style={{
       display: "flex",
       alignItems: "start",
-      gap: 6,
-      marginBottom: 6,
+      gap: 8,
+      padding: "5px 6px",
+      marginBottom: 2,
+      borderRadius: "var(--radius-sm)",
       fontSize: 13,
       cursor: "pointer",
+      background: checked ? "var(--color-primary-soft)" : "transparent",
     }}>
-      <input type="checkbox" checked={checked} onChange={onChange} style={{ marginTop: 3 }} />
+      <input type="checkbox" checked={checked} onChange={onChange} style={{ marginTop: 3, accentColor: "var(--color-primary)" }} />
       <div>
-        <div style={{ fontWeight: 500 }}>{member.shortTitle}</div>
+        <div style={{ fontWeight: 500, color: checked ? "var(--color-primary-hover)" : "var(--color-text)" }}>{member.shortTitle}</div>
         {member.meta?.caveat && (
-          <div style={{ fontSize: 11, color: "var(--color-warning)" }} title={member.meta.caveat}>
-            caveat
+          <div style={{ fontSize: 10.5, color: "var(--color-warning)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.03em" }} title={member.meta.caveat}>
+            ⚠ caveat
           </div>
         )}
       </div>
@@ -267,37 +257,16 @@ function CaveatBanners({ measures, selected }: { measures: CubeMember[]; selecte
   const unique = [...new Set(caveats)];
   if (unique.length === 0) return null;
   return (
-    <div style={{ marginBottom: 12 }}>
+    <div style={{ marginBottom: 12, display: "flex", flexDirection: "column", gap: 6 }}>
       {unique.map((c, i) => (
-        <div key={i} style={{
-          padding: "8px 12px",
-          background: "#fef3c7",
-          border: "1px solid #fcd34d",
-          borderRadius: "var(--radius)",
-          fontSize: 12,
-          color: "#92400e",
-          marginBottom: 4,
-        }}>
-          {c}
-        </div>
+        <div key={i} className="banner banner-warning">{c}</div>
       ))}
     </div>
   );
 }
 
 function EmptyState({ text }: { text: string }) {
-  return (
-    <div style={{
-      padding: 40,
-      textAlign: "center",
-      color: "var(--color-text-secondary)",
-      background: "var(--color-surface)",
-      border: "1px solid var(--color-border)",
-      borderRadius: "var(--radius)",
-    }}>
-      {text}
-    </div>
-  );
+  return <div className="empty-state">{text}</div>;
 }
 
 function DataTable({ rows, measures, dimensions }: {
@@ -308,28 +277,20 @@ function DataTable({ rows, measures, dimensions }: {
   const columns = [...dimensions, ...measures];
   const shortName = (col: string) => col.split(".").pop() ?? col;
   return (
-    <div style={{ overflowX: "auto", background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: "var(--radius)" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+    <div className="card" style={{ overflowX: "auto" }}>
+      <table className="data-table">
         <thead>
           <tr>
             {columns.map((col) => (
-              <th key={col} style={{
-                textAlign: "left",
-                padding: "8px 10px",
-                borderBottom: "2px solid var(--color-border)",
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-              }}>
-                {shortName(col)}
-              </th>
+              <th key={col}>{shortName(col)}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {rows.slice(0, 200).map((row, i) => (
-            <tr key={i} style={{ borderBottom: "1px solid var(--color-border)" }}>
+            <tr key={i}>
               {columns.map((col) => (
-                <td key={col} style={{ padding: "6px 10px", whiteSpace: "nowrap" }}>
+                <td key={col} style={{ whiteSpace: "nowrap" }}>
                   {String(row[col] ?? "")}
                 </td>
               ))}
@@ -338,7 +299,7 @@ function DataTable({ rows, measures, dimensions }: {
         </tbody>
       </table>
       {rows.length > 200 && (
-        <p style={{ padding: 8, fontSize: 12, color: "var(--color-text-secondary)" }}>
+        <p style={{ padding: "8px 12px", fontSize: 12, color: "var(--color-text-secondary)" }}>
           Showing 200 of {rows.length} rows
         </p>
       )}
@@ -360,28 +321,23 @@ function BarChart({ rows, measures, dimensions }: {
   const shortName = (col: string) => col.split(".").pop() ?? col;
 
   return (
-    <div style={{
-      background: "var(--color-surface)",
-      border: "1px solid var(--color-border)",
-      borderRadius: "var(--radius)",
-      padding: 16,
-    }}>
-      <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
+    <div className="card card-pad">
+      <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>
         {shortName(measure)} by {shortName(labelDim)}
       </h3>
-      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {rows.slice(0, 30).map((row, i) => {
           const val = Number(row[measure] ?? 0);
           const pct = (val / maxVal) * 100;
           return (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 120, fontSize: 12, textAlign: "right", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div style={{ width: 120, fontSize: 12, textAlign: "right", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--color-text-secondary)" }}>
                 {String(row[labelDim] ?? "")}
               </div>
-              <div style={{ flex: 1, height: 20, background: "#e5e7eb", borderRadius: 4, overflow: "hidden" }}>
-                <div style={{ width: `${pct}%`, height: "100%", background: "var(--color-primary)", borderRadius: 4, transition: "width 0.3s" }} />
+              <div style={{ flex: 1, height: 18, background: "var(--color-bg-alt)", borderRadius: 4, overflow: "hidden" }}>
+                <div style={{ width: `${pct}%`, height: "100%", background: "linear-gradient(90deg, var(--color-primary), var(--color-accent))", borderRadius: 4, transition: "width 0.3s" }} />
               </div>
-              <div style={{ width: 60, fontSize: 12, textAlign: "right" }}>
+              <div style={{ width: 60, fontSize: 12, textAlign: "right", fontWeight: 600 }}>
                 {typeof val === "number" ? val.toLocaleString(undefined, { maximumFractionDigits: 2 }) : val}
               </div>
             </div>
@@ -547,13 +503,8 @@ function ChoroplethMap({ rows, geoJoinDim, measure }: {
   const shortName = (col: string) => col.split(".").pop() ?? col;
 
   return (
-    <div style={{ position: "relative" }}>
-      <div ref={mapContainer} style={{
-        width: "100%",
-        height: 500,
-        borderRadius: "var(--radius)",
-        border: "1px solid var(--color-border)",
-      }} />
+    <div className="card" style={{ position: "relative", overflow: "hidden" }}>
+      <div ref={mapContainer} style={{ width: "100%", height: 520 }} />
       <button
         onClick={() => {
           const map = mapRef.current;
@@ -562,19 +513,8 @@ function ChoroplethMap({ rows, geoJoinDim, measure }: {
           map.easeTo({ pitch: next ? 45 : 0, bearing: next ? -17.6 : 0 });
           setTilted(next);
         }}
-        style={{
-          position: "absolute",
-          top: 16,
-          right: 16,
-          background: "var(--color-surface)",
-          border: "1px solid var(--color-border)",
-          borderRadius: "var(--radius)",
-          padding: "6px 12px",
-          fontSize: 13,
-          fontWeight: 500,
-          boxShadow: "var(--shadow)",
-          cursor: "pointer",
-        }}
+        className="btn btn-sm"
+        style={{ position: "absolute", top: 16, right: 16, background: "var(--color-surface)" }}
       >
         {tilted ? "Vue à plat" : "Vue inclinée"}
       </button>
@@ -582,18 +522,19 @@ function ChoroplethMap({ rows, geoJoinDim, measure }: {
         position: "absolute",
         bottom: 16,
         right: 16,
-        background: "rgba(255,255,255,0.9)",
-        padding: "8px 12px",
-        borderRadius: "var(--radius)",
+        background: "rgba(255,255,255,0.95)",
+        padding: "10px 14px",
+        borderRadius: "var(--radius-sm)",
         fontSize: 12,
-        boxShadow: "var(--shadow)",
+        boxShadow: "var(--shadow-md)",
+        border: "1px solid var(--color-border)",
       }}>
-        <div style={{ fontWeight: 600, marginBottom: 4 }}>{shortName(measure)}</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <div style={{ fontWeight: 700, marginBottom: 6 }}>{shortName(measure)}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span>{minVal.toFixed(1)}</span>
           <div style={{
             width: 100,
-            height: 12,
+            height: 10,
             background: "linear-gradient(to right, #f7fbff, #c6dbef, #6baed6, #2171b5, #08306b)",
             borderRadius: 2,
           }} />

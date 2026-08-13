@@ -2,67 +2,97 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getDataset, getLineage, type Dataset, type LineageRun } from "../api";
 
-function Badge({ label, color }: { label: string; color: string }) {
+function IconBack() {
   return (
-    <span style={{
-      display: "inline-block",
-      padding: "2px 10px",
-      borderRadius: 12,
-      fontSize: 12,
-      fontWeight: 600,
-      background: color,
-      color: "#fff",
-    }}>
-      {label}
-    </span>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
   );
 }
 
+const MODALITY_ICON: Record<string, React.ReactNode> = {
+  tabular: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="3" y1="9" x2="21" y2="9" />
+      <line x1="3" y1="15" x2="21" y2="15" />
+      <line x1="9" y1="3" x2="9" y2="21" />
+    </svg>
+  ),
+  vector: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <polygon points="12 3 21 9 18 20 6 20 3 9" />
+    </svg>
+  ),
+  raster: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
+    </svg>
+  ),
+};
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ marginBottom: 24 }}>
-      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, color: "var(--color-text)" }}>{title}</h2>
+    <div style={{ marginBottom: 28 }}>
+      <h2 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--color-text-muted)" }}>
+        {title}
+      </h2>
       {children}
     </div>
   );
 }
 
-function ProvenanceSentence({ ds }: { ds: Dataset }) {
-  const parts: string[] = [];
-  if (ds.source_class) parts.push(`Source class: ${ds.source_class}`);
-  if (ds.owner) parts.push(`owned by ${ds.owner}`);
-  if (ds.license) parts.push(`licensed under ${ds.license}`);
-  if (ds.classification) parts.push(`classification: ${ds.classification}`);
-  if (parts.length === 0) return null;
-  return <p style={{ fontSize: 14, color: "var(--color-text-secondary)" }}>{parts.join(" | ")}</p>;
+function ProvenanceGrid({ ds }: { ds: Dataset }) {
+  const rows: [string, string | null][] = [
+    ["Classe de source", ds.source_class],
+    ["Propriétaire", ds.owner],
+    ["Licence", ds.license],
+    ["Classification", ds.classification],
+  ].filter((r) => r[1]) as [string, string][];
+
+  if (rows.length === 0) return <p style={{ fontSize: 13.5, color: "var(--color-text-secondary)" }}>Aucune information de provenance disponible.</p>;
+
+  return (
+    <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
+      {rows.map(([label, value]) => (
+        <div key={label}>
+          <dt style={{ fontSize: 11, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 2 }}>{label}</dt>
+          <dd style={{ fontSize: 13.5, fontWeight: 500 }}>{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
 }
 
 function LineageTable({ runs }: { runs: LineageRun[] }) {
   if (runs.length === 0) {
-    return <p style={{ fontSize: 14, color: "var(--color-text-secondary)" }}>No pipeline runs recorded yet.</p>;
+    return <p style={{ fontSize: 13.5, color: "var(--color-text-secondary)" }}>Aucune exécution de pipeline enregistrée pour le moment.</p>;
   }
   return (
-    <div style={{ overflowX: "auto" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+    <div className="card" style={{ overflowX: "auto" }}>
+      <table className="data-table">
         <thead>
-          <tr style={{ borderBottom: "2px solid var(--color-border)" }}>
-            <th style={{ textAlign: "left", padding: "6px 8px" }}>Run ID</th>
-            <th style={{ textAlign: "left", padding: "6px 8px" }}>Status</th>
-            <th style={{ textAlign: "left", padding: "6px 8px" }}>Started</th>
-            <th style={{ textAlign: "left", padding: "6px 8px" }}>Finished</th>
-            <th style={{ textAlign: "right", padding: "6px 8px" }}>Rows</th>
+          <tr>
+            <th>Run ID</th>
+            <th>Statut</th>
+            <th>Démarré</th>
+            <th>Terminé</th>
+            <th style={{ textAlign: "right" }}>Lignes</th>
           </tr>
         </thead>
         <tbody>
           {runs.map((r) => (
-            <tr key={r.run_id} style={{ borderBottom: "1px solid var(--color-border)" }}>
-              <td style={{ padding: "6px 8px", fontFamily: "monospace" }}>{r.run_id?.slice(0, 8)}</td>
-              <td style={{ padding: "6px 8px" }}>
-                <Badge label={r.status} color={r.status === "SUCCESS" ? "var(--color-success)" : "var(--color-warning)"} />
+            <tr key={r.run_id}>
+              <td style={{ fontFamily: "var(--font-mono)" }}>{r.run_id?.slice(0, 8)}</td>
+              <td>
+                <span className="badge" style={{ background: r.status === "SUCCESS" ? "var(--color-success)" : "var(--color-warning)" }}>
+                  {r.status}
+                </span>
               </td>
-              <td style={{ padding: "6px 8px" }}>{r.started_at}</td>
-              <td style={{ padding: "6px 8px" }}>{r.finished_at}</td>
-              <td style={{ padding: "6px 8px", textAlign: "right" }}>{r.row_count?.toLocaleString()}</td>
+              <td>{r.started_at}</td>
+              <td>{r.finished_at}</td>
+              <td style={{ textAlign: "right" }}>{r.row_count?.toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
@@ -86,95 +116,108 @@ export default function DatasetPage() {
     enabled: !!id,
   });
 
-  if (isLoading) return <p>Loading...</p>;
-  if (error || !ds) return <p>Dataset not found.</p>;
+  if (isLoading) return <div className="state-loading"><div className="spinner" /> Chargement du jeu de données…</div>;
+  if (error || !ds) return <div className="empty-state">Jeu de données introuvable.</div>;
 
   return (
     <div>
-      <Link to="/" style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>Back to Discovery</Link>
+      <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12.5, color: "var(--color-text-secondary)", fontWeight: 600, marginBottom: 16 }}>
+        <IconBack /> Retour au catalogue
+      </Link>
 
-      <div style={{
-        background: "var(--color-surface)",
-        border: "1px solid var(--color-border)",
-        borderRadius: "var(--radius)",
-        padding: 24,
-        marginTop: 12,
-        boxShadow: "var(--shadow)",
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 16 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700 }}>{ds.title}</h1>
-          <div style={{ display: "flex", gap: 8 }}>
-            <Badge label={ds.source_type} color="#6366f1" />
-            <Badge label={ds.modality} color="#0891b2" />
+      <div style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: 320 }}>
+          <div className="card card-pad">
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 18 }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 10, background: "var(--color-primary-soft)",
+                color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              }}>
+                {MODALITY_ICON[ds.modality] ?? MODALITY_ICON.tabular}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h1 style={{ fontSize: 21, fontWeight: 700, marginBottom: 6 }}>{ds.title}</h1>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <span className="tag">{ds.source_type.replace("_source", "")}</span>
+                  <span className="tag">{ds.modality}</span>
+                  {ds.format && <span className="tag">{ds.format}</span>}
+                </div>
+              </div>
+            </div>
+
+            <Section title="Description">
+              <p style={{ fontSize: 14, lineHeight: 1.65, color: "var(--color-text)" }}>{ds.description}</p>
+            </Section>
+
+            {ds.caveats && (
+              <Section title="Limitations">
+                <div className="banner banner-warning">{ds.caveats}</div>
+              </Section>
+            )}
+
+            <Section title="Provenance">
+              <ProvenanceGrid ds={ds} />
+              {ds.citation && (
+                <p style={{ fontSize: 12.5, color: "var(--color-text-secondary)", marginTop: 10 }}>
+                  Citation : {ds.citation}
+                </p>
+              )}
+            </Section>
+
+            <Section title="Traçabilité (exécutions du pipeline)">
+              <LineageTable runs={lineage} />
+            </Section>
           </div>
         </div>
 
-        <Section title="Description">
-          <p style={{ fontSize: 14, lineHeight: 1.6 }}>{ds.description}</p>
-        </Section>
-
-        {ds.caveats && (
-          <Section title="Limitations">
-            <div style={{
-              padding: 12,
-              background: "#fef3c7",
-              borderRadius: "var(--radius)",
-              border: "1px solid #fcd34d",
-              fontSize: 13,
-              color: "#92400e",
-            }}>
-              {ds.caveats}
+        <aside style={{ width: 280, flexShrink: 0, position: "sticky", top: 76 }}>
+          <div className="card card-pad" style={{ marginBottom: 16 }}>
+            <div className="section-title">Actions</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {ds.modality === "tabular" && (
+                <Link to="/workbench?cube=commune_overview" style={{ textDecoration: "none" }}>
+                  <button className="btn btn-primary" style={{ width: "100%" }}>Ouvrir dans le Workbench</button>
+                </Link>
+              )}
+              <a
+                href={`/terria/#start=${encodeURIComponent(JSON.stringify({ initSources: [{ workbench: [ds.id === "ndvi_composite" ? "ndvi_zonal_stats" : ds.id] }] }))}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: "none" }}
+              >
+                <button className="btn btn-accent" style={{ width: "100%" }}>Ouvrir sur la carte</button>
+              </a>
             </div>
-          </Section>
-        )}
+          </div>
 
-        <Section title="Provenance">
-          <ProvenanceSentence ds={ds} />
-          {ds.citation && (
-            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginTop: 4 }}>
-              Citation: {ds.citation}
-            </p>
-          )}
-        </Section>
-
-        <Section title="Lineage (Pipeline Runs)">
-          <LineageTable runs={lineage} />
-        </Section>
-
-        <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-          {ds.modality === "tabular" && (
-            <Link to={`/workbench?cube=commune_overview`}>
-              <button style={{
-                padding: "8px 16px",
-                borderRadius: "var(--radius)",
-                background: "var(--color-primary)",
-                color: "#fff",
-                border: "none",
-                fontSize: 14,
-                fontWeight: 500,
-              }}>
-                Open in Workbench
-              </button>
-            </Link>
-          )}
-          <a
-            href={`/terria/#start=${encodeURIComponent(JSON.stringify({ initSources: [{ workbench: [ds.id === "ndvi_composite" ? "ndvi_zonal_stats" : ds.id] }] }))}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <button style={{
-              padding: "8px 16px",
-              borderRadius: "var(--radius)",
-              background: "#059669",
-              color: "#fff",
-              border: "none",
-              fontSize: 14,
-              fontWeight: 500,
-            }}>
-              Open in Map
-            </button>
-          </a>
-        </div>
+          <div className="card card-pad">
+            <div className="section-title">Détails</div>
+            <dl style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div>
+                <dt style={{ fontSize: 11, color: "var(--color-text-muted)", marginBottom: 2 }}>Identifiant</dt>
+                <dd style={{ fontSize: 12.5, fontFamily: "var(--font-mono)", wordBreak: "break-all" }}>{ds.id}</dd>
+              </div>
+              <div>
+                <dt style={{ fontSize: 11, color: "var(--color-text-muted)", marginBottom: 2 }}>Type de source</dt>
+                <dd style={{ fontSize: 13, fontWeight: 500 }}>{ds.source_type}</dd>
+              </div>
+              <div>
+                <dt style={{ fontSize: 11, color: "var(--color-text-muted)", marginBottom: 2 }}>Modalité</dt>
+                <dd style={{ fontSize: 13, fontWeight: 500 }}>{ds.modality}</dd>
+              </div>
+              {ds.stac_collection && (
+                <div>
+                  <dt style={{ fontSize: 11, color: "var(--color-text-muted)", marginBottom: 2 }}>Collection STAC</dt>
+                  <dd style={{ fontSize: 13, fontWeight: 500 }}>{ds.stac_collection}</dd>
+                </div>
+              )}
+              <div>
+                <dt style={{ fontSize: 11, color: "var(--color-text-muted)", marginBottom: 2 }}>Contrôles qualité</dt>
+                <dd style={{ fontSize: 13, fontWeight: 500 }}>{ds.quality_checks?.length ?? 0}</dd>
+              </div>
+            </dl>
+          </div>
+        </aside>
       </div>
     </div>
   );

@@ -28,17 +28,9 @@ function num(row: Row, key: string): number {
 
 function KpiCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div style={{
-      flex: 1,
-      minWidth: 160,
-      background: "var(--color-surface)",
-      border: "1px solid var(--color-border)",
-      borderRadius: "var(--radius)",
-      padding: "20px 24px",
-      boxShadow: "var(--shadow)",
-    }}>
-      <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 700, color }}>{value}</div>
+    <div className="kpi-card" style={{ borderLeftColor: color }}>
+      <div className="kpi-label">{label}</div>
+      <div className="kpi-value" style={{ color }}>{value}</div>
     </div>
   );
 }
@@ -424,9 +416,9 @@ function NdviTab() {
     return { avg, min: Math.min(...values), max: Math.max(...values), communeCount: communes.size };
   }, [rows]);
 
-  if (isLoading) return <p style={{ color: "var(--color-text-secondary)" }}>Chargement...</p>;
-  if (error) return <p style={{ color: "#dc2626" }}>Erreur de chargement des données.</p>;
-  if (!stats) return <p style={{ color: "var(--color-text-secondary)" }}>Aucune donnée disponible.</p>;
+  if (isLoading) return <div className="state-loading"><div className="spinner" /> Chargement...</div>;
+  if (error) return <div className="banner banner-danger">Erreur de chargement des données.</div>;
+  if (!stats) return <div className="empty-state">Aucune donnée disponible.</div>;
 
   return (
     <div>
@@ -464,9 +456,9 @@ function VegetationTab() {
     [rows]
   );
 
-  if (isLoading) return <p style={{ color: "var(--color-text-secondary)" }}>Chargement...</p>;
-  if (error) return <p style={{ color: "#dc2626" }}>Erreur de chargement des données.</p>;
-  if (rows.length === 0) return <p style={{ color: "var(--color-text-secondary)" }}>Aucune donnée disponible.</p>;
+  if (isLoading) return <div className="state-loading"><div className="spinner" /> Chargement...</div>;
+  if (error) return <div className="banner banner-danger">Erreur de chargement des données.</div>;
+  if (rows.length === 0) return <div className="empty-state">Aucune donnée disponible.</div>;
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
@@ -497,9 +489,9 @@ function SoilTab() {
   );
   const rows = (result?.data ?? []) as Row[];
 
-  if (isLoading) return <p style={{ color: "var(--color-text-secondary)" }}>Chargement...</p>;
-  if (error) return <p style={{ color: "#dc2626" }}>Erreur de chargement des données.</p>;
-  if (rows.length === 0) return <p style={{ color: "var(--color-text-secondary)" }}>Aucune donnée disponible.</p>;
+  if (isLoading) return <div className="state-loading"><div className="spinner" /> Chargement...</div>;
+  if (error) return <div className="banner banner-danger">Erreur de chargement des données.</div>;
+  if (rows.length === 0) return <div className="empty-state">Aucune donnée disponible.</div>;
 
   return (
     <div>
@@ -529,9 +521,9 @@ function ClimateTab() {
   );
   const rows = (result?.data ?? []) as Row[];
 
-  if (isLoading) return <p style={{ color: "var(--color-text-secondary)" }}>Chargement...</p>;
-  if (error) return <p style={{ color: "#dc2626" }}>Erreur de chargement des données.</p>;
-  if (rows.length === 0) return <p style={{ color: "var(--color-text-secondary)" }}>Aucune donnée disponible.</p>;
+  if (isLoading) return <div className="state-loading"><div className="spinner" /> Chargement...</div>;
+  if (error) return <div className="banner banner-danger">Erreur de chargement des données.</div>;
+  if (rows.length === 0) return <div className="empty-state">Aucune donnée disponible.</div>;
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
@@ -553,9 +545,9 @@ function WaterTab() {
   );
   const rows = (result?.data ?? []) as Row[];
 
-  if (isLoading) return <p style={{ color: "var(--color-text-secondary)" }}>Chargement...</p>;
-  if (error) return <p style={{ color: "#dc2626" }}>Erreur de chargement des données.</p>;
-  if (rows.length === 0) return <p style={{ color: "var(--color-text-secondary)" }}>Aucune donnée disponible.</p>;
+  if (isLoading) return <div className="state-loading"><div className="spinner" /> Chargement...</div>;
+  if (error) return <div className="banner banner-danger">Erreur de chargement des données.</div>;
+  if (rows.length === 0) return <div className="empty-state">Aucune donnée disponible.</div>;
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
@@ -574,9 +566,9 @@ function CropsTab() {
   const { data: result, isLoading, error } = useCubeQuery("crops", measures, dimensions);
   const rows = (result?.data ?? []) as Row[];
 
-  if (isLoading) return <p style={{ color: "var(--color-text-secondary)" }}>Chargement...</p>;
-  if (error) return <p style={{ color: "#dc2626" }}>Erreur de chargement des données.</p>;
-  if (rows.length === 0) return <p style={{ color: "var(--color-text-secondary)" }}>Aucune donnée disponible.</p>;
+  if (isLoading) return <div className="state-loading"><div className="spinner" /> Chargement...</div>;
+  if (error) return <div className="banner banner-danger">Erreur de chargement des données.</div>;
+  if (rows.length === 0) return <div className="empty-state">Aucune donnée disponible.</div>;
 
   return (
     <div style={CARD_STYLE}>
@@ -614,24 +606,20 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Dashboard</h1>
+      <div className="page-header">
+        <div>
+          <div className="eyebrow">Analytics</div>
+          <h1>Dashboard</h1>
+          <p>Indicateurs agricoles et environnementaux par commune, mis à jour à partir du pipeline de données.</p>
+        </div>
+      </div>
 
-      <div style={{ display: "flex", gap: 4, marginBottom: 24, flexWrap: "wrap" }}>
+      <div className="tabs" style={{ marginBottom: 24, flexWrap: "wrap" }}>
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            style={{
-              padding: "8px 16px",
-              borderRadius: "var(--radius)",
-              border: "1px solid",
-              borderColor: tab === t.id ? "var(--color-primary)" : "var(--color-border)",
-              background: tab === t.id ? "var(--color-primary)" : "var(--color-surface)",
-              color: tab === t.id ? "#fff" : "var(--color-text-secondary)",
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
+            className={"tab" + (tab === t.id ? " active" : "")}
           >
             {t.label}
           </button>
