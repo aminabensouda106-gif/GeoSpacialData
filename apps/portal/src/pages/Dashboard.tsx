@@ -1,7 +1,7 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { cubeExport } from "../api";
-import { downloadCsv } from "../csv";
+import { downloadXlsx } from "../xlsx";
 
 type Row = Record<string, string>;
 
@@ -289,16 +289,21 @@ function HeatmapTable({ data, communeKey, periodKey, valueKey, title, colorFn, d
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <h3 style={{ fontSize: 15, fontWeight: 600 }}>{title}</h3>
         <button
-          onClick={() =>
-            downloadCsv(
-              `${title}.csv`,
-              ["Commune", ...periods],
-              communes.map((cc) => [cc, ...periods.map((p) => lookup.get(`${cc}|${p}`)?.toFixed(decimals) ?? "")])
-            )
-          }
+          onClick={() => {
+            const columns = [
+              { header: "Commune", key: "commune", numeric: false },
+              ...periods.map((p) => ({ header: p, key: p, numeric: true, decimals })),
+            ];
+            const rows = communes.map((cc) => {
+              const row: Record<string, unknown> = { commune: cc };
+              for (const p of periods) row[p] = lookup.get(`${cc}|${p}`) ?? "";
+              return row;
+            });
+            downloadXlsx(`${title}.xlsx`, title, columns, rows);
+          }}
           className="btn btn-outline btn-sm"
         >
-          Export CSV
+          Export Excel
         </button>
       </div>
       <div style={{ overflowX: "auto" }}>
@@ -590,24 +595,34 @@ function CropsTab() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <h3 style={{ fontSize: 15, fontWeight: 600 }}>Calendrier cultural par commune</h3>
         <button
-          onClick={() =>
-            downloadCsv(
-              "calendrier_cultural.csv",
-              ["Commune", "Saison", "Culture", "Irrigation", "Rendement (q/ha)", "Surface (ha)", "Stress hydrique"],
-              rows.map((r) => [
-                r["crop_calendar.commune_code"],
-                r["crop_calendar.season"],
-                r["crop_calendar.crop_type"],
-                r["crop_calendar.irrigation_type"],
-                num(r, "crop_calendar.avg_yield").toFixed(1),
-                num(r, "crop_calendar.total_cultivated_area").toFixed(0),
-                num(r, "crop_calendar.avg_water_stress_index").toFixed(2),
-              ])
-            )
-          }
+          onClick={() => {
+            const columns = [
+              { header: "Commune", key: "commune", numeric: false },
+              { header: "Saison", key: "season", numeric: false },
+              { header: "Culture", key: "crop", numeric: false },
+              { header: "Irrigation", key: "irrigation", numeric: false },
+              { header: "Rendement (q/ha)", key: "yield", numeric: true, decimals: 1 },
+              { header: "Surface (ha)", key: "area", numeric: true, decimals: 0 },
+              { header: "Stress hydrique", key: "stress", numeric: true, decimals: 2 },
+            ];
+            const sorted = [...rows].sort((a, b) =>
+              String(a["crop_calendar.commune_code"]).localeCompare(String(b["crop_calendar.commune_code"])) ||
+              String(a["crop_calendar.season"]).localeCompare(String(b["crop_calendar.season"]))
+            );
+            const exportRows = sorted.map((r) => ({
+              commune: r["crop_calendar.commune_code"],
+              season: r["crop_calendar.season"],
+              crop: r["crop_calendar.crop_type"],
+              irrigation: r["crop_calendar.irrigation_type"],
+              yield: num(r, "crop_calendar.avg_yield"),
+              area: num(r, "crop_calendar.total_cultivated_area"),
+              stress: num(r, "crop_calendar.avg_water_stress_index"),
+            }));
+            downloadXlsx("calendrier_cultural.xlsx", "Calendrier cultural", columns, exportRows);
+          }}
           className="btn btn-outline btn-sm"
         >
-          Export CSV
+          Export Excel
         </button>
       </div>
       <div style={{ overflowX: "auto" }}>

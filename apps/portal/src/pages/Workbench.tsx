@@ -6,7 +6,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Protocol } from "pmtiles";
 import { onFlyTo } from "../locationBus";
-import { downloadCsv } from "../csv";
+import { downloadXlsx } from "../xlsx";
 
 type ViewMode = "table" | "chart" | "map";
 
@@ -195,18 +195,21 @@ export default function Workbench() {
             <div style={{ display: "flex", gap: 8 }}>
               <button
                 onClick={() => {
-                  const columns = [...selectedDimensions, ...selectedMeasures];
                   const shortName = (col: string) => col.split(".").pop() ?? col;
-                  downloadCsv(
-                    `${selectedCube || "workbench"}.csv`,
-                    columns.map(shortName),
-                    rows.map((row) => columns.map((col) => String(row[col] ?? "")))
-                  );
+                  const columns = [
+                    ...selectedDimensions.map((key) => ({ header: shortName(key), key, numeric: false })),
+                    ...selectedMeasures.map((key) => ({ header: shortName(key), key, numeric: true, decimals: 4 })),
+                  ];
+                  const sortKey = selectedDimensions[0];
+                  const sorted = sortKey
+                    ? [...rows].sort((a, b) => String(a[sortKey] ?? "").localeCompare(String(b[sortKey] ?? "")))
+                    : rows;
+                  downloadXlsx(`${selectedCube || "workbench"}.xlsx`, selectedCube || "Data", columns, sorted);
                 }}
                 disabled={rows.length === 0}
                 className="btn btn-outline btn-sm"
               >
-                Export CSV
+                Export Excel
               </button>
               <button onClick={() => navigator.clipboard.writeText(shareUrl)} className="btn btn-outline btn-sm">
                 Copy Share URL
