@@ -1,0 +1,38 @@
+/* @fontsource/big-shoulders-display@5.3.0 ships a stale `exports` map that
+   double-appends `.css` on any deep subpath import (e.g. `/700.css` resolves
+   to a nonexistent `700.css.css`), unlike its sibling font packages here —
+   so the weights we need are declared by hand, pointing at the actual woff
+   files via a relative path into node_modules, sidestepping the map. */
+
+@font-face {
+  font-family: "Big Shoulders Display";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src:
+    url("../node_modules/@fontsource/big-shoulders-display/files/big-shoulders-display-latin-600-normal.woff2") format("woff2"),
+    url("../node_modules/@fontsource/big-shoulders-display/files/big-shoulders-display-latin-600-normal.woff") format("woff");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Big Shoulders Display";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src:
+    url("../node_modules/@fontsource/big-shoulders-display/files/big-shoulders-display-latin-700-normal.woff2") format("woff2"),
+    url("../node_modules/@fontsource/big-shoulders-display/files/big-shoulders-display-latin-700-normal.woff") format("woff");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Big Shoulders Display";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 800;
+  src:
+    url("../node_modules/@fontsource/big-shoulders-display/files/big-shoulders-display-latin-800-normal.woff2") format("woff2"),
+    url("../node_modules/@fontsource/big-shoulders-display/files/big-shoulders-display-latin-800-normal.woff") format("woff");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}

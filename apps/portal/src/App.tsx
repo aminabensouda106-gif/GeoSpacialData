@@ -119,11 +119,11 @@ function NavBar() {
     <header className="topbar">
       <Link to="/" className="topbar-brand">
         <span className="topbar-brand-mark">
-          <IconGlobe />
+          <IconSurveyMark />
         </span>
         <span>
           GeoData Platform
-          <span className="topbar-brand-sub">Earth &amp; Agri Intelligence</span>
+          <span className="topbar-brand-sub">Commune Field Survey</span>
         </span>
       </Link>
 

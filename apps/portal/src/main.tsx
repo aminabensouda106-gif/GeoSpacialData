@@ -6,9 +6,7 @@ import App from "./App";
 
 // Self-hosted (no font-CDN dependency): Big Shoulders Display for headings/
 // stat figures, Public Sans for body/UI, IBM Plex Mono for codes & coordinates.
-import "@fontsource/big-shoulders-display/600.css";
-import "@fontsource/big-shoulders-display/700.css";
-import "@fontsource/big-shoulders-display/800.css";
+import "./fonts-display.css";
 import "@fontsource/public-sans/400.css";
 import "@fontsource/public-sans/500.css";
 import "@fontsource/public-sans/600.css";
