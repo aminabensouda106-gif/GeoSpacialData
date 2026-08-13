@@ -1,0 +1,34 @@
+id: ors_isochrones_15min
+title: "15-minute driving isochrones (OpenRouteService)"
+description: >
+  15-minute driving-time isochrone polygons around eleven Moroccan
+  commune centers, geocoded live via Nominatim and computed live via the
+  OpenRouteService (ORS) isochrones API. Real routing data, not a
+  synthetic fixture — every run re-geocodes and re-queries ORS.
+source:
+  type: api_source
+  endpoint: "https://api.openrouteservice.org/v2/isochrones/driving-car"
+  auth: "api_key_env:ORS_API_KEY"
+extract:
+  mode: full
+target:
+  modality: vector
+  format: geoparquet
+  zone: bronze/ors_isochrones_15min
+publish:
+  pmtiles: true
+  terria_group: "Indicators"
+quality:
+  checks: [schema_conformance, "no_nulls:commune_name", crs_declared]
+governance:
+  owner: platform-team
+  classification: public
+  source_class: derived
+  license: "ORS: CC-BY 4.0 (OpenRouteService) / geocoding: ODbL (OpenStreetMap Nominatim)"
+  citation: "openrouteservice.org isochrones API; geocoding via OpenStreetMap Nominatim"
+  caveats: >
+    Requires a free OpenRouteService API key (ORS_API_KEY environment
+    variable) — the pipeline fails fast if it is not set, rather than
+    falling back to a fixture. Driving times reflect ORS's routing model
+    at query time, not real-time traffic. Real-world data, not
+    synthetic: this replaces no other layer's placeholder geometry.

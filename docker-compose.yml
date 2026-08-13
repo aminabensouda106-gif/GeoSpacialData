@@ -260,6 +260,14 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       KC_HTTP_PORT: "8083"
       KC_HEALTH_ENABLED: "true"
+      # Without these, Keycloak doesn't know it's reached via the portal's
+      # nginx at localhost:8080/auth/ — it issues redirects (e.g. "/" ->
+      # "/admin/") using its own guess of hostname/port, which drops both
+      # the :8080 and the /auth prefix and breaks navigation entirely.
+      KC_HTTP_RELATIVE_PATH: /auth
+      KC_HOSTNAME: localhost:8080
+      KC_HOSTNAME_STRICT: "false"
+      KC_PROXY_HEADERS: xforwarded
     volumes:
       - ./infra/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
     healthcheck:

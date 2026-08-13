@@ -14,6 +14,7 @@ dependencies = [
   "connectors-file-source",
   "connectors-gee-source",
   "connectors-osm-source",
+  "connectors-ors-source",
   "rasterio>=1.3",
   "shapely>=2.0",
   "httpx>=0.27",
