@@ -39,3 +39,7 @@ commune_code,season,crop_type,irrigation_type,sowing_date,harvest_date,yield_q_h
 06-001,printemps,Betterave sucrière,irrigué,2024-03-15,2024-09-15,30.0,1781.0,3707.7,0.35
 06-001,été,Agrumes,pluvial,2024-03-15,2024-09-15,22.4,1158.0,680.6,0.6
 06-001,automne,Maraîchage,irrigué,2024-11-15,2024-06-15,30.5,309.0,3276.8,0.37
+07-001,hiver,Maraîchage,irrigué,2024-03-15,2024-09-15,25.6,1233.0,3696.9,0.47
+07-001,printemps,Maraîchage,pluvial,2024-03-15,2024-09-15,16.1,428.0,781.2,0.73
+07-001,été,Blé dur,pluvial,2024-03-15,2024-09-15,16.2,289.0,468.5,0.75
+07-001,automne,Maïs,irrigué,2024-11-15,2024-06-15,26.0,1165.0,3627.5,0.5

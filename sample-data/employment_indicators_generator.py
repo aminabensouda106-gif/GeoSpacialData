@@ -25,6 +25,7 @@ COMMUNES = [
     ("04-001", "Marrakech"),
     ("05-001", "Tanger"),
     ("06-001", "Agadir"),
+    ("07-001", "Laâyoune"),
 ]
 
 

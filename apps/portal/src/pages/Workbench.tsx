@@ -6,6 +6,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Protocol } from "pmtiles";
 import { onFlyTo } from "../locationBus";
+import { downloadCsv } from "../csv";
 
 type ViewMode = "table" | "chart" | "map";
 
@@ -191,9 +192,26 @@ export default function Workbench() {
                 </button>
               ))}
             </div>
-            <button onClick={() => navigator.clipboard.writeText(shareUrl)} className="btn btn-outline btn-sm">
-              Copy Share URL
-            </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={() => {
+                  const columns = [...selectedDimensions, ...selectedMeasures];
+                  const shortName = (col: string) => col.split(".").pop() ?? col;
+                  downloadCsv(
+                    `${selectedCube || "workbench"}.csv`,
+                    columns.map(shortName),
+                    rows.map((row) => columns.map((col) => String(row[col] ?? "")))
+                  );
+                }}
+                disabled={rows.length === 0}
+                className="btn btn-outline btn-sm"
+              >
+                Export CSV
+              </button>
+              <button onClick={() => navigator.clipboard.writeText(shareUrl)} className="btn btn-outline btn-sm">
+                Copy Share URL
+              </button>
+            </div>
           </div>
 
           {/* Caveat banners */}

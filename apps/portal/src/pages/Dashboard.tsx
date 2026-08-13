@@ -1,6 +1,7 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { cubeExport } from "../api";
+import { downloadCsv } from "../csv";
 
 type Row = Record<string, string>;
 
@@ -285,7 +286,21 @@ function HeatmapTable({ data, communeKey, periodKey, valueKey, title, colorFn, d
 
   return (
     <div style={CARD_STYLE}>
-      <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>{title}</h3>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 600 }}>{title}</h3>
+        <button
+          onClick={() =>
+            downloadCsv(
+              `${title}.csv`,
+              ["Commune", ...periods],
+              communes.map((cc) => [cc, ...periods.map((p) => lookup.get(`${cc}|${p}`)?.toFixed(decimals) ?? "")])
+            )
+          }
+          className="btn btn-outline btn-sm"
+        >
+          Export CSV
+        </button>
+      </div>
       <div style={{ overflowX: "auto" }}>
         <table style={{ borderCollapse: "collapse", fontSize: 13, width: "100%" }}>
           <thead>
@@ -572,7 +587,29 @@ function CropsTab() {
 
   return (
     <div style={CARD_STYLE}>
-      <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>Calendrier cultural par commune</h3>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 600 }}>Calendrier cultural par commune</h3>
+        <button
+          onClick={() =>
+            downloadCsv(
+              "calendrier_cultural.csv",
+              ["Commune", "Saison", "Culture", "Irrigation", "Rendement (q/ha)", "Surface (ha)", "Stress hydrique"],
+              rows.map((r) => [
+                r["crop_calendar.commune_code"],
+                r["crop_calendar.season"],
+                r["crop_calendar.crop_type"],
+                r["crop_calendar.irrigation_type"],
+                num(r, "crop_calendar.avg_yield").toFixed(1),
+                num(r, "crop_calendar.total_cultivated_area").toFixed(0),
+                num(r, "crop_calendar.avg_water_stress_index").toFixed(2),
+              ])
+            )
+          }
+          className="btn btn-outline btn-sm"
+        >
+          Export CSV
+        </button>
+      </div>
       <div style={{ overflowX: "auto" }}>
         <table style={{ borderCollapse: "collapse", fontSize: 13, width: "100%" }}>
           <thead>

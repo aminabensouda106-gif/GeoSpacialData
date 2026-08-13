@@ -219,17 +219,17 @@ def _external_layers() -> list[dict[str, Any]]:
         },
         {
             "type": "wms",
-            "id": "worldcover_landuse",
-            "name": "Occupation du Sol (ESA WorldCover)",
+            "id": "modis_landcover",
+            "name": "Occupation du Sol (MODIS Land Cover)",
             "description": (
-                "Carte d'occupation du sol 2021 à 10 m — cultures, forêt, "
-                "urbain, eau, sols nus. Basée sur Sentinel-1 et Sentinel-2."
-                '\n\n<b>Source:</b> ESA via Terrascope — '
-                '<a href="https://esa-worldcover.org" target="_blank">'
-                "esa-worldcover.org</a>"
+                "Classification annuelle de l'occupation du sol (IGBP) à "
+                "500 m — forêt, savane, cultures, urbain, eau, sols nus."
+                '\n\n<b>Source:</b> NASA GIBS (MCD12Q1) — '
+                '<a href="https://earthdata.nasa.gov" target="_blank">'
+                "earthdata.nasa.gov</a>"
             ),
-            "url": "https://services.terrascope.be/wms/v2",
-            "layers": "WORLDCOVER_2021_MAP",
+            "url": gibs,
+            "layers": "MODIS_Combined_L3_IGBP_Land_Cover_Type_Annual",
             "opacity": 0.6,
         },
         {
@@ -244,7 +244,7 @@ def _external_layers() -> list[dict[str, Any]]:
                 "gpm.nasa.gov</a>"
             ),
             "url": gibs,
-            "layers": "GPM_3IMERGM",
+            "layers": "IMERG_Precipitation_Rate",
             "opacity": 0.6,
         },
         {
@@ -259,7 +259,7 @@ def _external_layers() -> list[dict[str, Any]]:
                 "earthdata.nasa.gov</a>"
             ),
             "url": gibs,
-            "layers": "MODIS_Terra_Land_Surface_Temp_Day_Monthly",
+            "layers": "MODIS_Terra_L3_Land_Surface_Temp_Monthly_Day",
             "opacity": 0.7,
         },
         {
@@ -274,22 +274,23 @@ def _external_layers() -> list[dict[str, Any]]:
                 "smap.jpl.nasa.gov</a>"
             ),
             "url": gibs,
-            "layers": "SMAP_L4_Analyzed_Root_Zone_Moisture",
+            "layers": "SMAP_L4_Analyzed_Root_Zone_Soil_Moisture",
             "opacity": 0.6,
         },
         {
             "type": "wms",
-            "id": "modis_evapotranspiration",
-            "name": "Évapotranspiration (MODIS Terra)",
+            "id": "modis_gpp",
+            "name": "Productivité Primaire Brute — GPP (MODIS Terra)",
             "description": (
-                "Évapotranspiration mensuelle — bilan hydrique des cultures, "
-                "besoins en eau et productivité végétale."
+                "Productivité primaire brute (GPP) 8 jours — proxy de la "
+                "photosynthèse et de la productivité végétale, utile comme "
+                "indicateur indirect du bilan hydrique des cultures."
                 '\n\n<b>Source:</b> NASA GIBS — '
                 '<a href="https://earthdata.nasa.gov" target="_blank">'
                 "earthdata.nasa.gov</a>"
             ),
             "url": gibs,
-            "layers": "MODIS_Terra_Gross_Primary_Productivity_8Day",
+            "layers": "MODIS_Terra_L4_Gross_Primary_Productivity_8Day",
             "opacity": 0.6,
         },
         {
@@ -304,7 +305,7 @@ def _external_layers() -> list[dict[str, Any]]:
                 "earthdata.nasa.gov</a>"
             ),
             "url": gibs,
-            "layers": "VIIRS_SNPP_Thermal_Anomalies",
+            "layers": "VIIRS_SNPP_Thermal_Anomalies_375m_All",
             "opacity": 0.8,
         },
     ]
