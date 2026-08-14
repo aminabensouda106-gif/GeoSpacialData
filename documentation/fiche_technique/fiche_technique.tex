@@ -1,0 +1,387 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper,margin=2.4cm,top=2.6cm,bottom=2.8cm]{geometry}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{french}
+
+\setmainfont{Georgia}
+\newfontfamily\headingfont{Montserrat}
+
+\usepackage[none]{hyphenat}
+\usepackage{ragged2e}
+\RaggedRight
+\sloppy
+
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{array}
+\usepackage[colorlinks=true,linkcolor=navy,urlcolor=navy,citecolor=navy]{hyperref}
+\usepackage{fancyhdr}
+
+% ---------- palette ----------
+\definecolor{navy}{HTML}{16324F}
+\definecolor{teal}{HTML}{2A7F82}
+\definecolor{amber}{HTML}{B5721B}
+\definecolor{rose}{HTML}{9C3B4F}
+\definecolor{rule}{HTML}{D8DEE4}
+\definecolor{subtext}{HTML}{5B6B77}
+\definecolor{darktext}{HTML}{22303B}
+\definecolor{panel}{HTML}{F7F9FA}
+
+\color{darktext}
+\linespread{1.12}
+
+% ---------- headers ----------
+\setlength{\headheight}{22pt}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{rule}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\footnotesize\headingfont\color{subtext} Multi-Source Geospatial Data Platform}
+\fancyhead[R]{\footnotesize\headingfont\color{subtext} Fiche technique}
+\fancyfoot[L]{\footnotesize\color{subtext} POC \textbullet\ \today}
+\fancyfoot[R]{\footnotesize\color{subtext} \thepage}
+\fancypagestyle{plain}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}\fancyfoot[R]{\footnotesize\color{subtext}\thepage}}
+
+% ---------- section styling ----------
+\newcommand{\sectionnum}[1]{%
+  \tikz[baseline=-0.7ex]\node[circle,fill=navy,text=white,inner sep=0pt,minimum size=7mm,font=\headingfont\bfseries\small]{#1};%
+}
+\titleformat{\section}
+  {\headingfont\Large\bfseries\color{navy}}
+  {\sectionnum{\thesection}}{0.5em}{}
+  [\vspace{-2pt}{\color{rule}\hrule height 0.6pt}]
+\titlespacing{\section}{0pt}{22pt}{12pt}
+
+\titleformat{\subsection}
+  {\headingfont\large\bfseries\color{teal}}{\thesubsection}{0.5em}{}
+\titlespacing{\subsection}{0pt}{14pt}{6pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+% ---------- table styling: fixed-width, vertically centred columns ----------
+\newcommand{\tblhead}[1]{\headingfont\bfseries\footnotesize\color{white} #1}
+\newcolumntype{M}[1]{>{\raggedright\arraybackslash}m{#1}}
+\renewcommand{\arraystretch}{1.25}
+
+% ---------- simple accent box ----------
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\newtcolorbox{note}[1][]{
+  colback=panel, colframe=rule, boxrule=0.5pt, arc=1mm,
+  left=10pt, right=10pt, top=8pt, bottom=8pt, breakable, #1
+}
+
+% ---------- Q&A styling: editorial, not ribbons ----------
+\newcommand{\question}[1]{\par\vspace{9pt}\headingfont\bfseries\color{navy} #1\par\vspace{2pt}\normalfont\rmfamily\color{darktext}}
+
+\begin{document}
+\thispagestyle{plain}
+
+% ================= TITLE =================
+\begin{center}
+\vspace*{6pt}
+{\headingfont\footnotesize\color{teal}\MakeUppercase{Plateforme de données géospatiales : preuve de concept}}\\[10pt]
+{\headingfont\huge\bfseries\color{navy} Multi-Source\\[2pt] Geospatial Data Platform}\\[16pt]
+{\large\color{subtext} Fiche technique, support de préparation de réunion}\\[4pt]
+{\small\color{subtext}\today}
+\end{center}
+
+\vspace{10pt}
+{\color{rule}\hrule height 0.6pt}
+\vspace{18pt}
+
+\headingfont\bfseries\color{navy}\large En bref\normalfont\rmfamily\color{darktext}\par\vspace{4pt}
+Ce projet est un \textbf{POC de plateforme de données géospatiales} qui unifie, sous un seul socle technique, l'ingestion de sources hétérogènes (API, fichiers, imagerie satellite), leur stockage dans un véritable \emph{lakehouse}, et leur restitution auprès de deux publics différents : l'analyste (via un portail d'exploration et d'analyse) et l'utilisateur cartographique (via un explorateur de carte). L'ensemble tient dans un seul \texttt{docker compose up} et démarre sans aucun identifiant externe.
+
+\vspace{6pt}
+\headingfont\bfseries\color{navy}\normalsize Sommaire\normalfont\rmfamily\par\vspace{2pt}
+{\small\color{subtext}
+1. Contexte et problématique \quad
+2. La solution \quad
+3. Architecture technique \quad
+4. Cycle de vie d'une donnée\\
+5. Comment le projet a été construit \quad
+6. Organisation du dépôt \quad
+7. Stack technique \quad
+8. Limites assumées du POC \quad
+9. Questions \& réponses
+}
+
+\clearpage
+
+% ================= 1. CONTEXTE =================
+\section{Contexte et problématique}
+
+Les données utiles à la décision (démographie, occupation du sol, climat, agriculture, hydrologie) existent, mais elles sont \textbf{dispersées} entre des formats et des canaux qui ne se parlent pas : fichiers plats partagés par e-mail, API publiques à l'accès hétérogène, imagerie satellite accessible seulement via des outils spécialisés (Google Earth Engine). Chaque nouvelle source de données appelle un pipeline sur mesure, et les cartes de restitution finissent, très souvent, par être maintenues \emph{à la main}, ce qui les rend lentes à mettre à jour et sujettes à erreur dès que la donnée source change.
+
+La conséquence concrète : un analyste métier, non technique, ne peut ni trouver, ni croiser, ni visualiser ces données sans faire appel à un développeur à chaque étape. Le savoir reste bloqué dans des silos techniques.
+
+\begin{note}
+\textbf{Le POC répond à une question précise :} peut-on construire, sur une seule machine et sans infrastructure lourde, un socle qui absorbe des sources hétérogènes sous un contrat unique, tout en offrant une expérience de découverte en libre-service à quelqu'un qui n'écrit pas de SQL ?
+\end{note}
+
+% ================= 2. SOLUTION =================
+\section{La solution}
+
+La plateforme repose sur trois piliers.
+
+\subsection{Un contrat d'ingestion unique}
+Quelle que soit la source (API, fichier déposé, extraction satellite), chaque jeu de données est décrit par un \textbf{manifeste YAML déclaratif} : origine, contrôles qualité, gouvernance, configuration de publication. Le moteur d'orchestration lit une intention, pas une implémentation ad hoc. Ajouter une source ne veut pas dire écrire un nouveau pipeline from scratch, mais déclarer un nouveau manifeste dans un cadre déjà éprouvé.
+
+\subsection{Un vrai lakehouse}
+Les données atterrissent dans des tables \textbf{Apache Iceberg} (transactions ACID, schéma versionné) posées sur un stockage objet compatible S3. Le raster suit un chemin dédié (COG et catalogue STAC), le vecteur pré-rendu un autre (PMTiles). Trois catalogues distincts organisent la découverte : REST Iceberg, STAC spatio-temporel, et une table de lignage qui trace chaque exécution de pipeline.
+
+\subsection{Deux interfaces, un seul public visé au global}
+\textbf{Portal} répond à la question \emph{« quelle est la valeur de cet indicateur, et comment évolue-t-il ? »} : recherche, filtrage, graphiques, export, sans SQL. \textbf{TerriaMap} répond à \emph{« à quoi ressemblent ces couches superposées sur une carte ? »} : catalogue \textbf{généré automatiquement}, jamais écrit à la main. Des liens croisés font passer l'utilisateur de l'un à l'autre selon son besoin du moment.
+
+% ================= 3. ARCHITECTURE =================
+\section{Architecture technique}
+
+Le schéma ci-dessous suit le trajet d'une donnée, de la source jusqu'à l'écran de l'utilisateur final.
+
+\begin{center}
+\begin{tikzpicture}[
+  font=\sffamily\small,
+  node distance=6mm and 13mm,
+  stage/.style={font=\headingfont\bfseries\footnotesize, color=subtext},
+  box/.style={draw=rule, fill=panel, rounded corners=1.4mm, minimum height=8mm, minimum width=30mm, text width=27mm, align=center, font=\small, line width=0.6pt},
+  srcbox/.style={box, fill=navy!6, draw=navy!45},
+  orchbox/.style={box, fill=navy, draw=navy, text=white, font=\small\bfseries, minimum width=22mm, text width=19mm},
+  storebox/.style={box, fill=teal!8, draw=teal!55, minimum width=26mm, text width=23mm},
+  sembox/.style={box, fill=teal!18, draw=teal, minimum width=26mm, text width=23mm},
+  frontbox/.style={draw=navy, fill=navy!85, text=white, rounded corners=1.4mm, minimum height=9mm, minimum width=26mm, font=\headingfont\bfseries\small, align=center},
+  arr/.style={-{Latex[length=2.2mm,width=1.6mm]}, line width=0.7pt, color=subtext},
+  arrdash/.style={arr, dashed, color=navy}
+]
+
+% --- column headers ---
+\node[stage] (h1) at (0,2.3) {SOURCES};
+\node[stage] (h2) at (3.7,2.3) {ORCHESTRATION};
+\node[stage] (h3) at (7.6,2.3) {STOCKAGE};
+\node[stage] (h4) at (11.7,2.3) {SÉMANTIQUE / API};
+\node[stage] (h5) at (15.6,2.3) {RESTITUTION};
+
+% --- sources ---
+\node[srcbox] (api)  at (0,1.1)  {API externes\\\footnotesize (connecteur dlt)};
+\node[srcbox] (file) at (0,-0.3) {Fichiers\\\footnotesize (GDAL / OGR)};
+\node[srcbox] (gee)  at (0,-1.7) {Google Earth Engine\\\footnotesize (recettes)};
+
+% --- orchestration ---
+\node[orchbox] (dagster) at (3.7,-0.3) {Dagster};
+
+% --- storage (stacked, clean) ---
+\node[storebox] (iceberg) at (7.6,1.1)  {Tables Iceberg\\\footnotesize (tabulaire / vecteur)};
+\node[storebox] (stac)    at (7.6,-0.3) {COG + STAC\\\footnotesize (raster)};
+\node[storebox] (pmtiles) at (7.6,-1.7) {PMTiles\\\footnotesize (vecteur pré-rendu)};
+
+\begin{scope}[on background layer]
+\node[fit=(iceberg)(stac)(pmtiles), inner xsep=7mm, inner ysep=6mm, draw=teal!45, dashed, rounded corners=2mm, fill=teal!3] (s3fit) {};
+\end{scope}
+\node[font=\footnotesize\color{teal}, above=1mm of s3fit.north, align=center] {SeaweedFS (S3 compatible)};
+
+% --- semantic/api ---
+\node[sembox] (cube) at (11.7,1.1) {Cube\\\footnotesize couche sémantique};
+\node[sembox] (bff)  at (11.7,-0.3) {API BFF\\\footnotesize (FastAPI)};
+\node[sembox] (tcat) at (11.7,-1.7) {Catalogue Terria\\\footnotesize (généré)};
+
+% --- frontends ---
+\node[frontbox] (portal) at (15.6,1.1)  {Portal};
+\node[frontbox] (terria) at (15.6,-1.7) {TerriaMap};
+
+% --- arrows: sources -> dagster ---
+\draw[arr] (api)  -- (dagster);
+\draw[arr] (file) -- (dagster);
+\draw[arr] (gee)  -- (dagster);
+
+% --- arrows: dagster -> storage ---
+\draw[arr] (dagster) -- (iceberg);
+\draw[arr] (dagster) -- (stac);
+\draw[arr] (dagster) -- (pmtiles);
+
+% --- arrows: storage -> semantic/api ---
+\draw[arr] (iceberg) -- (cube);
+\draw[arr] (stac) -- (bff);
+\draw[arr] (pmtiles) -- (tcat);
+
+% --- arrows: semantic -> frontends ---
+\draw[arr] (cube) -- (bff);
+\draw[arr] (bff) -- (portal);
+\draw[arr] (tcat) -- (terria);
+\draw[arr] (stac.east) .. controls +(9mm,0) and +(-9mm,6mm) .. (tcat.north west);
+
+% --- cross-link ---
+\draw[arrdash] (portal.south) .. controls +(0,-16mm) and +(0,16mm) .. (terria.north)
+  node[midway, right, font=\scriptsize\color{navy}, xshift=1mm, align=left, text width=16mm] {liens\\croisés};
+
+\end{tikzpicture}
+\end{center}
+
+\vspace{4pt}
+{\small\color{subtext}
+Trois catalogues séparés assurent la découverte : \textbf{Lakekeeper} (catalogue REST Iceberg), \textbf{pgstac / STAC API} (découverte spatio-temporelle du raster et du vecteur), et une table \texttt{platform.pipeline\_runs} (lignage des exécutions). Le format de stockage suit la modalité de la donnée : Iceberg pour le tabulaire et le vecteur analytique, COG+STAC pour le raster, PMTiles pour le vecteur pré-rendu destiné à la carte.
+}
+
+% ================= 4. CYCLE DE VIE =================
+\section{Cycle de vie d'une donnée}
+
+Pour rendre l'architecture concrète, voici ce qui se passe, étape par étape, quand un nouveau jeu de données entre dans la plateforme.
+
+\begin{enumerate}[leftmargin=1.4em, itemsep=5pt, label=\headingfont\bfseries\color{navy}\arabic*.]
+\item \textbf{Déclaration} : un manifeste YAML décrit la source, son type (API, fichier, GEE), les contrôles qualité attendus et les règles de gouvernance et de publication.
+\item \textbf{Exécution} : Dagster matérialise l'asset correspondant, le connecteur adapté (dlt, GDAL/OGR, ou interpréteur de recette GEE) va chercher la donnée.
+\item \textbf{Normalisation} : la donnée est convertie dans le format cible selon sa modalité (GeoParquet vers Iceberg, COG pour le raster, PMTiles pour le vecteur pré-rendu via \texttt{tippecanoe}).
+\item \textbf{Contrôle qualité} : des vérifications (Soda Core) s'exécutent comme \emph{asset checks} Dagster ; un jeu de données qui échoue à un contrôle ne passe pas silencieusement.
+\item \textbf{Traçabilité} : chaque exécution produit obligatoirement cinq sorties : artefact brut avec somme de contrôle, asset normalisé, enregistrement au catalogue, entrée de lignage, rapport de qualité. En produire moins est considéré comme un échec par le framework lui-même, pas par convention.
+\item \textbf{Publication} : le jeu de données apparaît dans le catalogue STAC et/ou le registre de couches publiées, et le catalogue TerriaMap est régénéré automatiquement pour le refléter.
+\item \textbf{Découverte} : l'utilisateur final trouve la donnée dans Portal (recherche, fiche descriptive, lignage) ou directement sur la carte dans TerriaMap, avec un lien vers l'autre interface.
+\end{enumerate}
+
+\clearpage
+
+% ================= 5. CONSTRUCTION =================
+\section{Comment le projet a été construit}
+
+Le projet a été bâti \textbf{milestone par milestone}, chacun validé par une porte de vérification (\emph{stop gate}) avant de passer au suivant : une commande reproductible, un résultat observable, pas d'étape « ça devrait marcher ».
+
+\begin{center}
+\small
+\begin{tabular}{@{} M{1.3cm} M{3.0cm} M{\dimexpr\textwidth-1.3cm-3.0cm-4\tabcolsep\relax} @{}}
+\rowcolor{navy}
+\tblhead{Étape} & \tblhead{Nom} & \tblhead{Ce qui a été livré} \\
+\rowcolor{panel} \bfseries\color{teal} M1 & Socle stockage & SeaweedFS + Postgres, squelette Docker Compose, suite de tests de compatibilité S3 \\
+\bfseries\color{teal} M2 & Catalogue Iceberg & Lakekeeper, premier asset Dagster écrivant une table Iceberg, Jupyter + DuckDB \\
+\rowcolor{panel} \bfseries\color{teal} M3 & Framework d'ingestion & Contrat de manifeste, connecteurs API et fichiers, deux jeux de données réels \\
+\bfseries\color{teal} M4 & Raster et satellite & Pipeline raster, catalogue STAC, recette Google Earth Engine \\
+\rowcolor{panel} \bfseries\color{teal} M5 & Couche sémantique & Cube, modèle métier, API BFF \\
+\bfseries\color{teal} M6 & Portail & Interface Portal : découverte, fiche dataset, atelier d'analyse \\
+\rowcolor{panel} \bfseries\color{teal} M7 & Carte & TerriaMap, catalogue généré, correspondance de régions \\
+\bfseries\color{teal} M8 & Finition & Liens croisés entre les deux interfaces, script de démonstration, polish \\
+\end{tabular}
+\end{center}
+
+Chaque décision technique non triviale, en particulier celles qui allaient à l'encontre d'une hypothèse initiale du cahier des charges, a été consignée dans un \textbf{ADR} (\emph{Architecture Decision Record}) sous \texttt{docs/adr/} : le contexte, ce qui a été vérifié, la décision retenue et pourquoi. Six ADR documentent aujourd'hui les écarts entre le plan initial et la réalité de l'implémentation (comportement de SeaweedFS, configuration de Lakekeeper, limites de TerriaJS, etc.), et une partie d'entre eux est reprise dans la section Questions \& réponses.
+
+% ================= 6. ORGANISATION DU DEPOT =================
+\section{Organisation du dépôt}
+
+Le code suit une disposition pensée pour ressembler, dès le POC, à la disposition d'un projet de production : rien n'est jeté au moment de passer à l'échelle.
+
+\begin{center}
+\small
+\begin{tabular}{@{} M{3.0cm} M{\dimexpr\textwidth-3.0cm-2\tabcolsep\relax} @{}}
+\rowcolor{navy}
+\tblhead{Dossier} & \tblhead{Contenu} \\
+\rowcolor{panel} \ttfamily\bfseries\color{teal}\footnotesize orchestration/ & \rmfamily Dagster : définitions, resources, assets par jeu de données, l'asset \texttt{terria\_catalog} \\
+\ttfamily\bfseries\color{teal}\footnotesize connectors/ & \rmfamily Connecteurs par type de source : \texttt{api\_source}, \texttt{file\_source}, \texttt{gee\_source}, socle commun \\
+\rowcolor{panel} \ttfamily\bfseries\color{teal}\footnotesize recipes/ & \rmfamily Manifestes YAML des jeux de données et recettes d'extraction GEE \\
+\ttfamily\bfseries\color{teal}\footnotesize semantic/ & \rmfamily Modèle Cube (\texttt{cubes/} et \texttt{views/}) \\
+\rowcolor{panel} \ttfamily\bfseries\color{teal}\footnotesize apps/api & \rmfamily Backend-for-frontend FastAPI \\
+\ttfamily\bfseries\color{teal}\footnotesize apps/portal & \rmfamily Frontend Portal (React + Vite) \\
+\rowcolor{panel} \ttfamily\bfseries\color{teal}\footnotesize apps/terriamap & \rmfamily Configuration et assets de l'explorateur cartographique \\
+\ttfamily\bfseries\color{teal}\footnotesize infra/ & \rmfamily Configuration bas niveau (SeaweedFS, Postgres, Keycloak, Jupyter) \\
+\rowcolor{panel} \ttfamily\bfseries\color{teal}\footnotesize sample-data/ & \rmfamily Données synthétiques et fixtures : fonctionnement garanti sans identifiant externe \\
+\ttfamily\bfseries\color{teal}\footnotesize docs/adr/ & \rmfamily Une décision d'architecture documentée par fichier \\
+\end{tabular}
+\end{center}
+
+% ================= 7. STACK =================
+\section{Stack technique}
+
+\begin{center}
+\small
+\begin{tabular}{@{} M{2.6cm} M{4.4cm} M{\dimexpr\textwidth-2.6cm-4.4cm-4\tabcolsep\relax} @{}}
+\rowcolor{navy}
+\tblhead{Couche} & \tblhead{Composants} & \tblhead{Rôle} \\
+\rowcolor{panel} \bfseries\color{teal} Stockage objet & SeaweedFS (compatible S3) & Buckets \texttt{raw}, \texttt{warehouse}, \texttt{assets}, \texttt{serving} \\
+\bfseries\color{teal} Catalogues & Lakekeeper, pgstac / STAC API, Postgres & Catalogue REST Iceberg, découverte spatio-temporelle, lignage des exécutions \\
+\rowcolor{panel} \bfseries\color{teal} Orchestration & Dagster & Pipelines déclaratifs, assets, capteurs \\
+\bfseries\color{teal} Couche sémantique & Cube (moteur DuckDB) & Traduction des tables physiques en métriques métier \\
+\rowcolor{panel} \bfseries\color{teal} Backend & FastAPI (BFF) & Recherche, métadonnées de jeux de données, exports \\
+\bfseries\color{teal} Frontends & Portal (React / Vite), TerriaMap & Analyse en libre-service, exploration cartographique \\
+\rowcolor{panel} \bfseries\color{teal} Identité & Keycloak (OIDC) & Un realm de développement unique \\
+\bfseries\color{teal} Notebooks & Jupyter + DuckDB & Exploration ad hoc des tables \\
+\end{tabular}
+\end{center}
+
+% ================= 8. LIMITES =================
+\section{Limites assumées du POC}
+
+Le projet est explicite sur ce qu'il ne prouve pas : une liste de renoncements \textbf{délibérés}, pas des oublis.
+
+\begin{itemize}[leftmargin=1.2em, itemsep=3pt]
+\item Pas de haute disponibilité, pas de test de charge.
+\item Authentification limitée à un unique realm Keycloak de développement.
+\item Pas de stratégie de sauvegarde ou de reprise après sinistre.
+\item Moteur de calcul, moteur de recherche et finition d'interface ont pris des raccourcis de POC \textbf{délibérés et réversibles}.
+\end{itemize}
+
+\begin{note}
+En miroir, les décisions qui \emph{ne} sont \emph{pas} des raccourcis (stockage, format de table, contrat de manifeste) ont été traitées avec la même rigueur qu'en production, précisément parce qu'elles seraient coûteuses à changer plus tard. C'est la distinction centrale à défendre en réunion si la question de la maturité du projet est posée.
+\end{note}
+
+\clearpage
+
+% ================= 9. Q&A =================
+\section{Questions \& réponses : préparation réunion}
+
+\subsection{Questions de base}
+
+\question{Que fait concrètement cette plateforme ?}
+Elle ingère des données géospatiales et statistiques de sources variées (API, fichiers, imagerie satellite), les stocke dans un lakehouse structuré, et les rend explorables via deux interfaces web : un portail d'analyse (Portal) et un explorateur cartographique (TerriaMap).
+
+\question{Pourquoi deux interfaces plutôt qu'une seule ?}
+Parce qu'elles répondent à deux besoins différents et non redondants. Le Portal répond à \emph{« quelle est la valeur de cet indicateur ? »} (recherche et analyse) ; TerriaMap répond à \emph{« à quoi ça ressemble superposé sur une carte ? »} (exploration spatiale). Elles sont reliées par des liens croisés dans les deux sens.
+
+\question{Comment démarre-t-on la plateforme ?}
+Une seule commande, \texttt{make bootstrap}, lance tous les services via Docker Compose sur une seule machine, sans aucune dépendance cloud externe pour démarrer.
+
+\question{Qu'est-ce qu'un « lakehouse », et pourquoi est-ce préférable à un simple entrepôt de fichiers ?}
+C'est un stockage objet (fichiers Parquet) doté de garanties habituellement réservées aux bases de données : transactions ACID, schéma versionné, requêtes SQL, via Apache Iceberg. On garde la flexibilité et le coût d'un stockage objet tout en gagnant la fiabilité d'un entrepôt de données classique.
+
+\question{D'où viennent les données ?}
+De trois familles de connecteurs : API externes (via \texttt{dlt}), fichiers déposés (via GDAL/OGR pour le géospatial), et Google Earth Engine (recettes d'extraction satellite). Des données synthétiques et des fixtures enregistrées permettent de faire tourner la démonstration sans identifiants réels.
+
+\subsection{Questions intermédiaires}
+
+\question{Pourquoi SeaweedFS plutôt que MinIO, plus répandu ?}
+C'était une contrainte du cahier des charges, justement pour valider la compatibilité S3 d'un composant moins éprouvé que MinIO. Des écarts réels ont été trouvés et documentés, par exemple des échecs intermittents sur des écritures conditionnelles, et gérés par une suite de tests de compatibilité dédiée.
+
+\question{Comment le catalogue de TerriaMap reste-t-il à jour ?}
+Il n'est jamais écrit à la main. Un asset Dagster le régénère automatiquement à partir du catalogue STAC, du registre des couches PMTiles publiées, et des couches externes. Publier un nouveau jeu de données met donc la carte à jour sans intervention manuelle.
+
+\question{Que se passe-t-il en l'absence d'identifiants Google Earth Engine ?}
+Le pipeline bascule automatiquement sur des fixtures enregistrées, et l'interface l'indique explicitement : la démonstration reste fonctionnelle et honnête sur l'origine réelle des données affichées.
+
+\question{Quel est le rôle de Cube dans l'architecture ?}
+C'est la couche sémantique : elle traduit les tables physiques Iceberg en métriques compréhensibles pour un métier (par exemple « taux d'emploi par région ») que le Portal interroge directement, sans que l'utilisateur final n'écrive de SQL.
+
+\subsection{Questions plus pointues}
+
+\question{Pourquoi ne pas avoir utilisé Spark ou Trino, standards du marché ?}
+C'est un choix de POC délibéré et documenté : le volume de données en jeu ne justifie pas ce coût opérationnel. DuckDB remplace Trino pour l'exécution analytique, la recherche plein texte de Postgres remplace OpenSearch, et une simple table de lignage remplace des services dédiés comme Marquez. Ce sont des raccourcis de \textbf{calcul et de recherche}, jugés réversibles, à l'inverse des choix de stockage et de format, jugés irréversibles et donc traités avec la même rigueur qu'en production dès le POC.
+
+\question{Le format PMTiles est-il vraiment utilisé dans TerriaMap ?}
+Le pipeline génère bien du PMTiles via \texttt{tippecanoe}. Mais la version de TerriaJS utilisée ne supporte pas nativement ce type en entrée de catalogue : les couches vecteur y sont donc exposées en GeoJSON. C'est une limite de l'outil front-end au moment de la restitution, pas un renoncement à PMTiles côté stockage.
+
+\question{TerriaMap tourne-t-il en 3D par défaut ?}
+Non, il a d'abord été forcé en mode 2D. Le mode 3D par défaut nécessite un token payant pour le terrain et l'imagerie de fond ; comme le POC doit démarrer sans aucun identifiant externe, ce mode produirait un rendu inutilisable. Ce point a depuis évolué (une vue 3D inclinée a été introduite pour certains rendus) et vaut la peine d'être vérifié dans l'état courant du dépôt avant d'en parler en réunion.
+
+\question{Si l'exécution d'un pipeline échoue à mi-chemin, que se passe-t-il aux données ?}
+Le framework impose que chaque exécution produise cinq sorties obligatoires : artefact brut avec somme de contrôle, asset normalisé, enregistrement au catalogue, entrée de lignage, rapport de qualité. Une exécution qui en produit moins est traitée comme un échec par le framework lui-même : ce n'est pas laissé à la discipline de chacun. Cela évite les états partiels silencieux dans le lakehouse.
+
+\question{Comment la géométrie est-elle gérée dans Iceberg, alors qu'un support géographique natif existe désormais ?}
+Volontairement non utilisé pour ce POC : la géométrie est stockée via un pont explicite, une colonne binaire WKB, des colonnes d'enveloppe (bbox), et le système de coordonnées déclaré dans les propriétés de la table. C'est plus verbeux, mais stable et interrogeable dès aujourd'hui, sans dépendre d'un support natif encore jeune dans l'écosystème.
+
+\question{Cette plateforme est-elle prête pour la production ?}
+Non, explicitement pas : pas de haute disponibilité, pas de test de charge, authentification limitée à un realm de développement, pas de stratégie de sauvegarde. En revanche, les décisions structurantes (stockage objet, format de table, contrat de manifeste) ont été prises pour être \emph{migration-safe}. L'objectif du POC n'est pas d'éviter ces sujets, mais de ne pas avoir à les refaire en passant en production.
+
+\vspace{16pt}
+{\footnotesize\color{subtext}\hrule height 0.4pt\vspace{6pt}
+Sources : \texttt{README.md}, \texttt{documentation/MASTER\_PROMPT\_GEOPLATFORM\_POC\_v2.md}, \texttt{docs/DEMO\_SCRIPT.md}, \texttt{docs/adr/0001} à \texttt{0006}.}
+
+\end{document}
