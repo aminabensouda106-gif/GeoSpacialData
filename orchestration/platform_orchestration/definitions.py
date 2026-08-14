@@ -6,6 +6,8 @@ from platform_orchestration.assets import (
     hello,
     ndvi_composite,
     ndvi_zonal_stats,
+    ors_isochrones_15min,
+    osm_health_facilities,
     terria_catalog,
 )
 from platform_orchestration.assets.quality_checks import (
@@ -19,6 +21,8 @@ all_assets = load_assets_from_modules(
         communes_boundaries_pmtiles,
         ndvi_composite,
         ndvi_zonal_stats,
+        osm_health_facilities,
+        ors_isochrones_15min,
         terria_catalog,
     ]
 )

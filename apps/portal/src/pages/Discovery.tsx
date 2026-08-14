@@ -34,54 +34,33 @@ function IconPin() {
 
 function IconEmpty() {
   return (
-    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
       <circle cx="11" cy="11" r="7" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
   );
 }
 
-const MODALITY_ICON: Record<string, React.ReactNode> = {
-  tabular: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <line x1="3" y1="9" x2="21" y2="9" />
-      <line x1="3" y1="15" x2="21" y2="15" />
-      <line x1="9" y1="3" x2="9" y2="21" />
-    </svg>
-  ),
-  vector: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polygon points="12 3 21 9 18 20 6 20 3 9" />
-    </svg>
-  ),
-  raster: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="3" width="7" height="7" />
-      <rect x="14" y="3" width="7" height="7" />
-      <rect x="3" y="14" width="7" height="7" />
-      <rect x="14" y="14" width="7" height="7" />
-    </svg>
-  ),
-};
-
-function TrustBadge({ ds }: { ds: Dataset }) {
+/** Circular wax-seal mark, not a colored pill — the visual language of a
+ *  verification stamp on a field record rather than a generic status chip. */
+function TrustStamp({ ds }: { ds: Dataset }) {
   const checks = ds.quality_checks?.length ?? 0;
   const hasGov = ds.owner && ds.license;
   let level: "gold" | "silver" | "bronze" = "bronze";
   if (checks >= 2 && hasGov) level = "gold";
   else if (checks >= 1 || hasGov) level = "silver";
 
-  const colors = {
-    gold: "var(--color-badge-gold)",
-    silver: "var(--color-badge-silver)",
-    bronze: "var(--color-badge-bronze)",
-  };
-  const titles = { gold: "Or — vérifié & documenté", silver: "Argent — partiellement vérifié", bronze: "Bronze — non vérifié" };
+  const style = {
+    gold: { color: "var(--soil)", code: "OR" },
+    silver: { color: "var(--text-secondary)", code: "AR" },
+    bronze: { color: "#7a4a22", code: "BR" },
+  }[level];
+
+  const titles = { gold: "Or — vérifié et documenté", silver: "Argent — partiellement vérifié", bronze: "Bronze — non vérifié" };
 
   return (
-    <span className="badge" style={{ background: colors[level] }} title={titles[level]}>
-      {level}
+    <span className="stamp" style={{ color: style.color }} title={titles[level]}>
+      {style.code}
     </span>
   );
 }
@@ -90,23 +69,17 @@ function DatasetCard({ ds }: { ds: Dataset }) {
   return (
     <Link to={`/datasets/${ds.id}`} style={{ textDecoration: "none", color: "inherit" }}>
       <div className="card card-hover card-pad" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: 8, background: "var(--color-primary-soft)",
-              color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0, marginTop: 1,
-            }}>
-              {MODALITY_ICON[ds.modality] ?? MODALITY_ICON.tabular}
-            </div>
-            <h3 style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>{ds.title}</h3>
-          </div>
-          <TrustBadge ds={ds} />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 12 }}>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.03em", paddingTop: 8 }}>
+            {ds.id.slice(0, 22)}
+          </span>
+          <TrustStamp ds={ds} />
         </div>
-        <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 14, lineHeight: 1.5, flex: 1 }}>
+        <h3 style={{ fontSize: 15.5, fontWeight: 700, lineHeight: 1.3, marginBottom: 8 }}>{ds.title}</h3>
+        <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 14, lineHeight: 1.55, flex: 1 }}>
           {ds.description?.slice(0, 150)}{ds.description?.length > 150 ? "…" : ""}
         </p>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", paddingTop: 12, borderTop: "1px solid var(--line)" }}>
           <span className="tag">{ds.source_type.replace("_source", "")}</span>
           <span className="tag">{ds.modality}</span>
           {ds.format && <span className="tag">{ds.format}</span>}
@@ -132,13 +105,13 @@ function FilterOption({ label, count, active, onClick }: { label: string; count?
       style={{
         display: "flex", justifyContent: "space-between", alignItems: "center",
         padding: "6px 8px", borderRadius: "var(--radius-sm)", border: "none",
-        background: active ? "var(--color-primary-soft)" : "transparent",
-        color: active ? "var(--color-primary)" : "var(--color-text-secondary)",
-        fontSize: 13, fontWeight: active ? 600 : 500, textAlign: "left", width: "100%",
+        background: active ? "var(--field-soft)" : "transparent",
+        color: active ? "var(--field-dark)" : "var(--text-secondary)",
+        fontSize: 13, fontWeight: active ? 700 : 500, textAlign: "left", width: "100%",
       }}
     >
       <span>{label}</span>
-      {count !== undefined && <span style={{ fontSize: 11, color: "var(--color-text-muted)" }}>{count}</span>}
+      {count !== undefined && <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)" }}>{count}</span>}
     </button>
   );
 }
@@ -204,7 +177,7 @@ export default function Discovery() {
     <div>
       <div className="hero">
         <div className="hero-inner">
-          <div className="hero-eyebrow">Catalogue de données géospatiales</div>
+          <div className="hero-eyebrow">Catalogue &middot; {datasets.length} enregistrements</div>
           <h1>Explorez toutes les données du territoire</h1>
           <p>
             Imagerie satellite, indicateurs climatiques, sols, cultures et données de terrain — recherchez,
@@ -221,15 +194,15 @@ export default function Discovery() {
             <button className="btn btn-accent" style={{ margin: 2 }}>Rechercher</button>
           </div>
           <div className="hero-stats">
-            <div>
+            <div className="hero-stat">
               <div className="hero-stat-value">{datasets.length}</div>
               <div className="hero-stat-label">Jeux de données</div>
             </div>
-            <div>
+            <div className="hero-stat">
               <div className="hero-stat-value">{SOURCE_TYPES.length}</div>
               <div className="hero-stat-label">Sources connectées</div>
             </div>
-            <div>
+            <div className="hero-stat">
               <div className="hero-stat-value">{MODALITIES.length}</div>
               <div className="hero-stat-label">Types de données</div>
             </div>
@@ -267,7 +240,7 @@ export default function Discovery() {
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <span style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-secondary)" }}>
               {isLoading ? "Recherche…" : `${filtered.length} résultat${filtered.length !== 1 ? "s" : ""}`}
             </span>
           </div>
@@ -277,7 +250,7 @@ export default function Discovery() {
           ) : filtered.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon" style={{ display: "flex", justifyContent: "center" }}><IconEmpty /></div>
-              <p style={{ fontWeight: 600, marginBottom: 4 }}>Aucun jeu de données trouvé</p>
+              <p style={{ fontWeight: 700, marginBottom: 4 }}>Aucun jeu de données trouvé</p>
               <p style={{ fontSize: 13 }}>Essayez d'ajuster votre recherche ou vos filtres.</p>
             </div>
           ) : (

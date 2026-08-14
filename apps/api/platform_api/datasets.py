@@ -10,8 +10,8 @@ import yaml
 
 from platform_api.config import stac_api_url, titiler_url
 
-# All current datasets are joined to the 10-commune registry covering
-# continental Morocco; there's no per-dataset AOI polygon available to the
+# All current datasets are joined to the 11-commune registry covering
+# Morocco and Western Sahara; there's no per-dataset AOI polygon available to the
 # BFF (sample-data/ isn't copied into the API image), so every dataset uses
 # this shared centroid/radius derived from the Terria home camera bounds
 # (infra/terria/init/geodata.json: west=-10, south=27, east=0, north=36).

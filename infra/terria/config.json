@@ -21,6 +21,7 @@
     "map": "3dSmooth",
     "useCesiumIonTerrain": false,
     "useCesiumIonBingImagery": false,
-    "cesiumTerrainUrl": ""
+    "cesiumTerrainUrl": "",
+    "cesiumRequestRenderMode": false
   }
 }

@@ -70,4 +70,8 @@ def register_layer(
         table = catalog.create_table(TABLE_IDENTIFIER, schema=PUBLISHED_LAYERS_SCHEMA)
     except TableAlreadyExistsError:
         table = catalog.load_table(TABLE_IDENTIFIER)
-    table.append(row)
+    # Upsert semantics: each layer_id should have exactly one row. A plain
+    # append() would grow an unbounded duplicate per re-materialization,
+    # and the terria_catalog generator would then emit the same catalog
+    # member once per duplicate row.
+    table.overwrite(row, overwrite_filter=f"layer_id = '{layer_id}'")

@@ -1,4 +1,4 @@
-"""Generates synthetic agricultural/terrestrial CSVs for the 10 POC communes
+"""Generates synthetic agricultural/terrestrial CSVs for the 11 POC communes
 and uploads each as a flat Parquet file to s3://serving/cube/<id>.parquet on
 SeaweedFS, which is where semantic/cubes/*.yml's DuckDB reader expects to
 find them (see semantic/cubes/ndvi_zonal_stats.yml for the existing pattern).

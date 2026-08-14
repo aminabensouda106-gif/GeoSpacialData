@@ -1,7 +1,7 @@
 id: communes_boundaries
 title: "Commune administrative boundaries"
 description: >
-  Synthetic commune boundary polygons for the POC, covering ten
+  Synthetic commune boundary polygons for the POC, covering eleven
   communes used for zonal statistics (NDVI) and choropleths.
 source:
   type: file_source

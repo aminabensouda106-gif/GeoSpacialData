@@ -34,17 +34,23 @@
 
   /* Legacy aliases (kept so any un-migrated inline style still resolves) */
   --color-bg: var(--paper);
+  --color-bg-alt: var(--paper-dim);
   --color-surface: var(--surface-raised);
   --color-text: var(--text);
   --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
   --color-primary: var(--field);
   --color-primary-hover: var(--field-dark);
+  --color-primary-soft: var(--field-soft);
+  --color-accent: var(--soil);
   --color-border: var(--line);
+  --color-border-strong: var(--line-strong);
   --color-badge-gold: var(--soil);
   --color-badge-silver: #6b7260;
   --color-badge-bronze: #7a4a22;
   --color-success: var(--field);
   --color-warning: var(--soil);
+  --color-danger: var(--flag);
   --radius: 5px;
   --shadow: 0 1px 2px rgba(30, 36, 25, 0.1);
   --font: "Public Sans", system-ui, sans-serif;
@@ -315,6 +321,7 @@ table {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 0;
   background-image:
     repeating-linear-gradient(90deg, rgba(238, 240, 230, 0.07) 0 1px, transparent 1px 88px),
     repeating-linear-gradient(0deg, rgba(238, 240, 230, 0.07) 0 1px, transparent 1px 88px);
@@ -326,6 +333,7 @@ table {
   /* Contour rings, like elevation lines on a topo sheet */
   content: "";
   position: absolute;
+  z-index: 0;
   top: -140px;
   right: -80px;
   width: 480px;
@@ -338,6 +346,7 @@ table {
 
 .hero-inner {
   position: relative;
+  z-index: 1;
   max-width: var(--content-max);
   margin: 0 auto;
 }
@@ -577,11 +586,6 @@ table {
   flex-shrink: 0;
 }
 
-.stamp::before {
-  content: "";
-  position: absolute;
-}
-
 /* ---------- Badges & tags ---------- */
 
 .badge {
@@ -754,7 +758,6 @@ table {
   min-width: 150px;
   padding: 16px 20px;
   border-right: 1px solid var(--line);
-  border-top: 3px solid var(--field);
 }
 
 .stat-block:last-child {
@@ -779,8 +782,6 @@ table {
   line-height: 1;
 }
 
-/* legacy alias for any un-migrated usage */
-.kpi-card { flex: 1; min-width: 160px; background: var(--surface-raised); border: 1px solid var(--line); border-top: 3px solid var(--field); padding: 16px 20px; }
 .kpi-label { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
 .kpi-value { font-family: var(--font-display); font-size: 30px; font-weight: 700; }
 

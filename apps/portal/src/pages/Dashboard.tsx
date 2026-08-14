@@ -1,6 +1,7 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { cubeExport } from "../api";
+import { downloadXlsx } from "../xlsx";
 
 type Row = Record<string, string>;
 
@@ -28,7 +29,7 @@ function num(row: Row, key: string): number {
 
 function KpiCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="kpi-card" style={{ borderLeftColor: color }}>
+    <div className="stat-block">
       <div className="kpi-label">{label}</div>
       <div className="kpi-value" style={{ color }}>{value}</div>
     </div>
@@ -93,14 +94,14 @@ function LineChart({ data, communeKey, periodKey, valueKey, title }: {
             const y = yScale(v);
             return (
               <g key={t}>
-                <line x1={PL} x2={W - PR} y1={y} y2={y} stroke="#e5e7eb" strokeWidth={1} />
-                <text x={PL - 8} y={y + 4} textAnchor="end" fontSize={11} fill="#6b7280">{v.toFixed(2)}</text>
+                <line x1={PL} x2={W - PR} y1={y} y2={y} stroke="var(--line)" strokeWidth={1} />
+                <text x={PL - 8} y={y + 4} textAnchor="end" fontSize={11} fill="var(--text-muted)">{v.toFixed(2)}</text>
               </g>
             );
           })}
 
           {periods.map((p, i) => (
-            <text key={p} x={xScale(i)} y={H - 8} textAnchor="middle" fontSize={11} fill="#6b7280">{p}</text>
+            <text key={p} x={xScale(i)} y={H - 8} textAnchor="middle" fontSize={11} fill="var(--text-muted)">{p}</text>
           ))}
 
           {communes.map((cc, ci) => {
@@ -179,13 +180,13 @@ function MultiMetricLineChart({ data, periodKey, metrics, title }: {
             const y = yScale(v);
             return (
               <g key={t}>
-                <line x1={PL} x2={W - PR} y1={y} y2={y} stroke="#e5e7eb" strokeWidth={1} />
-                <text x={PL - 8} y={y + 4} textAnchor="end" fontSize={11} fill="#6b7280">{v.toFixed(2)}</text>
+                <line x1={PL} x2={W - PR} y1={y} y2={y} stroke="var(--line)" strokeWidth={1} />
+                <text x={PL - 8} y={y + 4} textAnchor="end" fontSize={11} fill="var(--text-muted)">{v.toFixed(2)}</text>
               </g>
             );
           })}
           {periods.map((p, i) => (
-            <text key={p} x={xScale(i)} y={H - 8} textAnchor="middle" fontSize={11} fill="#6b7280">{p}</text>
+            <text key={p} x={xScale(i)} y={H - 8} textAnchor="middle" fontSize={11} fill="var(--text-muted)">{p}</text>
           ))}
           {metrics.map((m) => {
             const avgs = avgByPeriod.get(m.key)!;
@@ -259,9 +260,9 @@ function BarChartByCommune({ data, communeKey, periodKey, valueKey, title, subti
           const w = (r.value / maxVal) * chartW;
           return (
             <g key={r.commune}>
-              <text x={PL - 8} y={y + barH / 2 + 4} textAnchor="end" fontSize={12} fill="#374151">{r.commune}</text>
+              <text x={PL - 8} y={y + barH / 2 + 4} textAnchor="end" fontSize={12} fill="var(--text)">{r.commune}</text>
               <rect x={PL} y={y} width={w} height={barH} rx={3} fill={colorFn ? colorFn(r.value) : "var(--color-primary)"} />
-              <text x={PL + w + 6} y={y + barH / 2 + 4} fontSize={12} fill="#6b7280">{r.value.toFixed(1)}</text>
+              <text x={PL + w + 6} y={y + barH / 2 + 4} fontSize={12} fill="var(--text-muted)">{r.value.toFixed(1)}</text>
             </g>
           );
         })}
@@ -285,7 +286,26 @@ function HeatmapTable({ data, communeKey, periodKey, valueKey, title, colorFn, d
 
   return (
     <div style={CARD_STYLE}>
-      <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>{title}</h3>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 600 }}>{title}</h3>
+        <button
+          onClick={() => {
+            const columns = [
+              { header: "Commune", key: "commune", numeric: false },
+              ...periods.map((p) => ({ header: p, key: p, numeric: true, decimals })),
+            ];
+            const rows = communes.map((cc) => {
+              const row: Record<string, unknown> = { commune: cc };
+              for (const p of periods) row[p] = lookup.get(`${cc}|${p}`) ?? "";
+              return row;
+            });
+            downloadXlsx(`${title}.xlsx`, title, columns, rows);
+          }}
+          className="btn btn-outline btn-sm"
+        >
+          Export Excel
+        </button>
+      </div>
       <div style={{ overflowX: "auto" }}>
         <table style={{ borderCollapse: "collapse", fontSize: 13, width: "100%" }}>
           <thead>
@@ -360,14 +380,14 @@ function RadarChart({ data, communeKey, axes, title }: {
               key={t}
               points={axes.map((_, i) => pointFor(i, t).join(",")).join(" ")}
               fill="none"
-              stroke="#e5e7eb"
+              stroke="var(--line)"
               strokeWidth={1}
             />
           ))}
           {axes.map((axis, i) => {
             const [x, y] = pointFor(i, 1.12);
             return (
-              <text key={axis.key} x={x} y={y} textAnchor="middle" fontSize={10} fill="#6b7280">
+              <text key={axis.key} x={x} y={y} textAnchor="middle" fontSize={10} fill="var(--text-muted)">
                 {axis.label}
               </text>
             );
@@ -422,11 +442,11 @@ function NdviTab() {
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
-        <KpiCard label="NDVI moyen global" value={stats.avg.toFixed(3)} color="#2563eb" />
-        <KpiCard label="NDVI minimum" value={stats.min.toFixed(3)} color="#dc2626" />
-        <KpiCard label="NDVI maximum" value={stats.max.toFixed(3)} color="#059669" />
-        <KpiCard label="Communes" value={String(stats.communeCount)} color="#7c3aed" />
+      <div className="stat-row" style={{ marginBottom: 24 }}>
+        <KpiCard label="NDVI moyen global" value={stats.avg.toFixed(3)} color="var(--ink-soft)" />
+        <KpiCard label="NDVI minimum" value={stats.min.toFixed(3)} color="var(--flag)" />
+        <KpiCard label="NDVI maximum" value={stats.max.toFixed(3)} color="var(--field)" />
+        <KpiCard label="Communes" value={String(stats.communeCount)} color="var(--soil)" />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
         <LineChart data={rows} communeKey="commune_overview.commune_code" periodKey="commune_overview.period"
@@ -572,7 +592,39 @@ function CropsTab() {
 
   return (
     <div style={CARD_STYLE}>
-      <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>Calendrier cultural par commune</h3>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 600 }}>Calendrier cultural par commune</h3>
+        <button
+          onClick={() => {
+            const columns = [
+              { header: "Commune", key: "commune", numeric: false },
+              { header: "Saison", key: "season", numeric: false },
+              { header: "Culture", key: "crop", numeric: false },
+              { header: "Irrigation", key: "irrigation", numeric: false },
+              { header: "Rendement (q/ha)", key: "yield", numeric: true, decimals: 1 },
+              { header: "Surface (ha)", key: "area", numeric: true, decimals: 0 },
+              { header: "Stress hydrique", key: "stress", numeric: true, decimals: 2 },
+            ];
+            const sorted = [...rows].sort((a, b) =>
+              String(a["crop_calendar.commune_code"]).localeCompare(String(b["crop_calendar.commune_code"])) ||
+              String(a["crop_calendar.season"]).localeCompare(String(b["crop_calendar.season"]))
+            );
+            const exportRows = sorted.map((r) => ({
+              commune: r["crop_calendar.commune_code"],
+              season: r["crop_calendar.season"],
+              crop: r["crop_calendar.crop_type"],
+              irrigation: r["crop_calendar.irrigation_type"],
+              yield: num(r, "crop_calendar.avg_yield"),
+              area: num(r, "crop_calendar.total_cultivated_area"),
+              stress: num(r, "crop_calendar.avg_water_stress_index"),
+            }));
+            downloadXlsx("calendrier_cultural.xlsx", "Calendrier cultural", columns, exportRows);
+          }}
+          className="btn btn-outline btn-sm"
+        >
+          Export Excel
+        </button>
+      </div>
       <div style={{ overflowX: "auto" }}>
         <table style={{ borderCollapse: "collapse", fontSize: 13, width: "100%" }}>
           <thead>

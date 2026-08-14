@@ -1,0 +1,35 @@
+id: osm_health_facilities
+title: "Health facilities (OpenStreetMap / Overpass)"
+description: >
+  Hospitals tagged `amenity=hospital` in OpenStreetMap, pulled live from
+  the public Overpass API within a bounding box covering Morocco and the
+  southern provinces (Laâyoune, Dakhla, Smara). Real, community-mapped
+  data — not a synthetic fixture: every run re-queries Overpass and
+  reflects whatever is mapped at run time.
+source:
+  type: api_source
+  endpoint: "https://overpass-api.de/api/interpreter"
+  auth: none
+extract:
+  mode: full
+target:
+  modality: vector
+  format: geoparquet
+  zone: bronze/osm_health_facilities
+publish:
+  pmtiles: true
+  terria_group: "Indicators"
+quality:
+  checks: [schema_conformance, "no_nulls:osm_id,amenity", crs_declared]
+governance:
+  owner: platform-team
+  classification: public
+  source_class: scraped
+  license: ODbL-1.0
+  citation: "© OpenStreetMap contributors, via the Overpass API (https://overpass-api.de)"
+  caveats: >
+    Community-contributed OpenStreetMap data, not an official government
+    registry — coverage and attribute completeness (e.g. missing "name"
+    tags) vary by region and depend on volunteer mapping activity. This
+    is real-world data, not a synthetic fixture: values reflect
+    OpenStreetMap's actual contents at query time.

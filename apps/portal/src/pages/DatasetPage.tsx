@@ -10,28 +10,6 @@ function IconBack() {
   );
 }
 
-const MODALITY_ICON: Record<string, React.ReactNode> = {
-  tabular: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <line x1="3" y1="9" x2="21" y2="9" />
-      <line x1="3" y1="15" x2="21" y2="15" />
-      <line x1="9" y1="3" x2="9" y2="21" />
-    </svg>
-  ),
-  vector: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polygon points="12 3 21 9 18 20 6 20 3 9" />
-    </svg>
-  ),
-  raster: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
-      <rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
-    </svg>
-  ),
-};
-
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 28 }}>
@@ -128,20 +106,15 @@ export default function DatasetPage() {
       <div style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: 320 }}>
           <div className="card card-pad">
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 18 }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: 10, background: "var(--color-primary-soft)",
-                color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-              }}>
-                {MODALITY_ICON[ds.modality] ?? MODALITY_ICON.tabular}
+            <div style={{ marginBottom: 18, paddingBottom: 16, borderBottom: "1px solid var(--line)" }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 6 }}>
+                {ds.id}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <h1 style={{ fontSize: 21, fontWeight: 700, marginBottom: 6 }}>{ds.title}</h1>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  <span className="tag">{ds.source_type.replace("_source", "")}</span>
-                  <span className="tag">{ds.modality}</span>
-                  {ds.format && <span className="tag">{ds.format}</span>}
-                </div>
+              <h1 style={{ fontSize: 26, fontWeight: 700, marginBottom: 10 }}>{ds.title}</h1>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <span className="tag">{ds.source_type.replace("_source", "")}</span>
+                <span className="tag">{ds.modality}</span>
+                {ds.format && <span className="tag">{ds.format}</span>}
               </div>
             </div>
 
@@ -193,10 +166,6 @@ export default function DatasetPage() {
           <div className="card card-pad">
             <div className="section-title">Détails</div>
             <dl style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div>
-                <dt style={{ fontSize: 11, color: "var(--color-text-muted)", marginBottom: 2 }}>Identifiant</dt>
-                <dd style={{ fontSize: 12.5, fontFamily: "var(--font-mono)", wordBreak: "break-all" }}>{ds.id}</dd>
-              </div>
               <div>
                 <dt style={{ fontSize: 11, color: "var(--color-text-muted)", marginBottom: 2 }}>Type de source</dt>
                 <dd style={{ fontSize: 13, fontWeight: 500 }}>{ds.source_type}</dd>
